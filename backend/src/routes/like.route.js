@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
     likeVideo,
     likeComment,
-    likeTweet,
+    likeStream,
     getLikedVideos,
     unlike,
 } from "../controllers/like.controller.js"
@@ -13,8 +13,8 @@ router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/toggle/v/:videoId").post(likeVideo);
 router.route("/toggle/c/:commentId").post(likeComment);
-router.route("/toggle/t/:tweetId").post(likeTweet);
+router.route("/toggle/s/:streamId").post(likeStream);
 router.route("/videos").get(getLikedVideos);
-router.route("/:likeId").delete(unlike);
+router.route("/toggleDislike").delete(unlike);
 
 export default router;

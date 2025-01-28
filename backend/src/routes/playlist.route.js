@@ -9,12 +9,13 @@ router.use(verifyJWT);
 
 router.route("/").post(createPlayList)
 
-router.route("/:playListId").get(getPlayList).patch(updatePlayListDetails).delete(deletePlayList)
+router.route("/:userId").get(getUserPlaylists)
+
+router.route("/get/:playListId").get(getPlayList).patch(updatePlayListDetails).delete(deletePlayList)
 
 router.route("/add/:videoId/:playListId").patch(addVideoToPlayList)
 
 router.route("/remove/:videoId/:playListId").patch(removeVideoFromPlayList)
 
-router.route("/:userId").get(getUserPlaylists)
 
 export default router;

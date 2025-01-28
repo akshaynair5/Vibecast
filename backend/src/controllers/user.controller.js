@@ -1,10 +1,14 @@
 import { User } from "../models/user.model.js";
+import { Subscription } from "../models/subscription.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import uploadToCloudinary from "../utils/fileUpload.js";
 import ApiError from "../utils/apiError.js";
 import deleteFromCloudinary from "../utils/fileDelete.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import { Stream } from "../models/stream.model.js";
 
 const generateAccessAndRefreshTokens = async (userId) =>{
     try{
@@ -142,7 +146,7 @@ const loginUser = asyncHandler(async (req,res)=>{
 });
 
 const logoutUser = asyncHandler(async (req,res)=>{
-    await User.findByIdAndUpdate(req.user._id,{
+    await User.findByIdAndUpdate(req.body._id,{
             $unset: {refreshToken: 1}                 // Removes the refresh token from the user object
         },
         {
@@ -160,17 +164,20 @@ const logoutUser = asyncHandler(async (req,res)=>{
 
 const refreshAccessToken = asyncHandler(async (req,res)=>{
     const incomingRefreshToken  = req.cookies.refreshToken ||  req.body.refreshToken
+    console.log(incomingRefreshToken)
 
     if(!incomingRefreshToken){
         throw new ApiError(401,"Refresh Token not Available")
     }
 
     const decodedToken = await jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET);
+    console.log(decodedToken)
     if(!decodedToken){
         throw new ApiError(401,"Invalid Token")
     }
 
     const user = await User.findById(decodedToken._id).select("-password -refreshToken")
+    console.log(user)
     if(incomingRefreshToken !== user.refreshToken){
         throw new ApiError(401,"Invalid Token")
     }
@@ -211,6 +218,7 @@ const changeCurrentPassword = asyncHandler(async (req,res)=>{
 })
 
 const getCurrentUser = asyncHandler(async (req,res)=>{
+    console.log(req.user)
     res.status(200).json(new ApiResponse(200,req.user,"User has been fetched successfully"))
 })
 
@@ -248,7 +256,6 @@ const updateUserDetails = asyncHandler(async (req,res)=>{
 
 const updateAvatar = asyncHandler(async (req,res)=>{
     const avatarLocalPath = req.file?.path;
-    const token = req.cookies.accessToken || req.header("Authorization").replace("Bearer ", "");
     const prevAvatar = req.user.avatar
 
     if(!avatarLocalPath){
@@ -261,7 +268,7 @@ const updateAvatar = asyncHandler(async (req,res)=>{
         throw new ApiError(400,"Error while uploading Avatar")
     }
 
-    await deleteFromCloudinary(prevAvatar)
+    await deleteFromCloudinary(prevAvatar, 'image')
     // user.avatar = avatar.url;
     // await user.save({validateBeforeSave:false});
 
@@ -281,7 +288,7 @@ const updateAvatar = asyncHandler(async (req,res)=>{
 const updateCoverImage = asyncHandler(async (req,res)=>{
     const coverImageLocalPath = req.file?.path;
     const token = req.cookies.accessToken || req.header("Authorization").replace("Bearer ", "");
-    const prevCoverImage = req.user.avatar
+    const prevCoverImage = req.user.coverImage
 
     if(!coverImageLocalPath){
         throw new ApiError(400,"Cover Image is required")
@@ -293,7 +300,7 @@ const updateCoverImage = asyncHandler(async (req,res)=>{
         throw new ApiError(400,"Error while uploading Cover Image")
     }
 
-    await deleteFromCloudinary(prevCoverImage);
+    await deleteFromCloudinary(prevCoverImage, 'image');
 
     // user.avatar = avatar.url;
     // await user.save({validateBeforeSave:false});
@@ -313,9 +320,10 @@ const updateCoverImage = asyncHandler(async (req,res)=>{
 
 const getUserChannelProfile = asyncHandler(async (req,res)=>{
     const channelUserId = req.params.username;
-    if(!channelUser){
+    if(!channelUserId){
         throw new ApiError(400,"Username is required")
     }
+    console.log(channelUserId)
 
     const channel = await User.aggregate(
         [
@@ -341,12 +349,25 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
                 }
             },
             {
+                $lookup: {
+                    from: "videos",
+                    localField: "_id",
+                    foreignField: "owner",
+                    as: "videos"
+                }
+            },
+            {
+                $lookup: {
+                    from: "streams",
+                    localField: "_id",
+                    foreignField: "owner",
+                    as: "liveStreams"
+                }
+            },
+            {
                 $addFields: {                      // Adds new fields with the data that we would have from previous pipeline stages (Key-Value Pair)
                     subscribersCount: {
                         $size: "$subscribers"
-                    },
-                    subscriberToCount:{
-                        $size: "$subscribedTo"
                     },
                     isSubscribed: {
                         $cond: {                          // This checks if the current user is already subscribed to the channel or not
@@ -364,70 +385,171 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
                     avatar: 1,
                     coverImage: 1,
                     subscribersCount: 1,
-                    subscriberToCount: 1,
                     isSubscribed: 1,
-                    email:1
+                    email:1,
+                    videos: 1,
+                    liveStreams: 1
                 }
             }
         ]
     )
-    if(!channel?.length > 1){
+    if(!channel.length > 1){
         throw new ApiError(400,"Channel does not exist")
     }
-
-    res.status(200).json(new ApiResponse(200,channel,"Channel has retrieved successfully"))
+    console.log(channel)
+    res.status(200).json(new ApiResponse(200,channel,"Channel has been retrieved successfully"))
 
 })
 
-const getWatchHistory = asyncHandler(async (req,res)=>{
-    const user = await User.aggregate([
-        {
-            $match: {
-                _id: new mongoose.Types.ObjectId(req.user?._id)
+const getWatchHistory = asyncHandler(async (req, res) => {
+    try {
+        const user = await User.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(req.user?._id)
+                }
+            },
+            {
+                $lookup: {
+                    from: "videos",
+                    localField: "watchHistory", // Collect all the videos in the user's watchHistory array
+                    foreignField: "_id",
+                    as: "watchHistory",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "users", // Collect the owner details of the video
+                                localField: "owner",
+                                foreignField: "_id",
+                                as: "owner",
+                                pipeline: [
+                                    {
+                                        $project: {
+                                            fullName: 1,
+                                            username: 1,
+                                            avatar: 1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $addFields: {
+                                owner: { $first: "$owner" } // Reduce the owner array to a single object
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    watchHistory: 1 // Only return the watchHistory field
+                }
             }
+        ]);
+
+        if (!user || !user[0]) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        }
+
+        res.status(200).json(
+            new ApiResponse(200, user[0].watchHistory, "Watch history has been retrieved successfully")
+        );
+    } catch (error) {
+        console.error("Error retrieving watch history:", error);
+        res.status(500).json(new ApiResponse(500, null, "An error occurred while retrieving watch history"));
+    }
+});
+
+
+const userContent = asyncHandler(async (req, res) => {
+    try {
+      const userId = req.user._id; // Assuming user ID is available in the request
+  
+      // Fetch subscriptions for the user
+      const subscriptions = await Subscription.find({ subscriber: userId }).populate('channel');
+  
+      // Fetch videos from subscribed channels
+      const subscribedChannels = subscriptions.map((sub) => sub.channel._id);
+      const forYouVideos = await Video.find({ owner: { $in: subscribedChannels }, isPublished: true })
+        .sort({ createdAt: -1 }) // Most recent first
+        .limit(10);
+  
+      // Fetch trending or latest videos for Explore
+      const exploreVideos = await Video.find({
+        isPublished: true,
+        owner: { $ne: req.user._id }, // Exclude videos uploaded by the current user
+      })
+        .sort({ views: -1 }) // Sort by views in descending order (trending videos)
+        .limit(10);
+  
+      // Fetch trending live streams
+      const liveStreams = await Stream.find({
+        status: true,
+        owner: { $ne: req.user._id }, // Exclude videos uploaded by the current user
+      })
+        .sort({ views: -1 }) // Sort by views in descending order (trending videos)
+        .limit(10);
+  
+      // Group videos by topics
+      const topicVideos = await Video.aggregate([
+        {
+          $match: {
+            isPublished: true,
+          },
         },
         {
-            $lookup: {
-                from: "videos",
-                localField: "watchHistory",         // Using this we are collecting all the videos that are there in the watchHistory array of the user
-                foreignField: "_id",
-                as: "watchHistory",
-                pipeline: [
-                    {
-                        $lookup:{
-                            from: "users",                  // Based on the data that has already been collected by the previous pipeline
-                            localField: "owner",            // we collect the owner details of the video from the each of the video object that has generated
-                            foreignField: "_id",
-                            as: "owner"
-                        },
-                        
-                        pipeline: [                         // Now within each of the objects that we have here (list of objs) we just collect the  
-                            {                               // required fields from the owner object (We could have done this outside as well but the
-                                                            // format would be different.)
-                                $project: {
-                                    fullName: 1,
-                                    username: 1,
-                                    avatar: 1
-                                }
-                            }
-                        ]
+          $group: {
+            _id: "$topic", // Group by the 'topic' field
+            videos: {
+              $push: {
+                _id: "$_id",
+                title: "$title",
+                description: "$description",
+                thumbnail: "$thumbnail",
+                owner: "$owner",
+                createdAt: "$createdAt",
+                views: "$views",
+                duration: "$duration",
+              },
+            },
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Sort groups alphabetically by topic
+        },
+      ]);
+  
+      res.status(200).json({
+        forYou: forYouVideos,
+        explore: exploreVideos,
+        liveStreams: liveStreams,
+        topics: topicVideos,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching home page data", error });
+    }
+  });  
 
-                    },
-                    {
-                        $addFields: {
-                            owner: {
-                                $first: "$owner"          // Makes it easier for the frontend dev to display data as lookup send us an array back  
-                            }                             // As we know for sure that the is only a single user we do not need to send the array and include 
-                                                          // that within the data that we send hence the first is taken out and projected as the owner field.
-                        }
-                    }
-                ]         // All this so far is within the owner field
+const clearHistory = asyncHandler(async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(req.user?._id, {
+            $set: {
+                watchHistory: []
             }
+        }, {
+            new: true
+        });
+
+        if (!user) {
+            return res.json(new ApiResponse(404, null, "User not found"));
         }
-    ])
 
-    res.status(200).json(new ApiResponse(200,user[0].watchHistory,"Watch History has been retrieved successfully"))
+        res.json(new ApiResponse(200, user, "Watch history has been cleared successfully"));
+    } catch (error) {
+        console.error("Error clearing watch history:", error);
+        res.json(new ApiResponse(500, null, "An error occurred while clearing watch history"));
+    }
+});
 
-})
-
-export {registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory};
+export {registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory, userContent, clearHistory};

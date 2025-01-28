@@ -44,7 +44,7 @@ const getSubscribedChannels = asyncHandler(async (req,res)=>{
     res.status(200).json(new ApiResponse(200, channels,"Subscriptions found successfully"))
 })
 
-const toggleSubscription = asyncHandler(async (res,req)=>{
+const toggleSubscription = asyncHandler(async (req,res)=>{
     const channelId = req.params.channelId;
     
     if(!channelId){
@@ -63,7 +63,7 @@ const toggleSubscription = asyncHandler(async (res,req)=>{
     res.status(201).json(new ApiResponse(201, subscription,"Subscription created successfully"))
 })
 
-const unSubscribe = asyncHandler(async (res,req)=>{
+const unSubscribe = asyncHandler(async (req,res)=>{
     const channelId = req.params.channelId;
 
     if(!channelId){
@@ -82,16 +82,45 @@ const unSubscribe = asyncHandler(async (res,req)=>{
     res.status(200).json(new ApiResponse(200, subscription,"Subscription deleted successfully"))
 })
 
-const getUserSubscriptions = asyncHandler(async (res,req)=>{
-    const subscriptions = await Subscription.find({
-        subscriber: req.user._id
-    });
+const getUserSubscriptions = asyncHandler(async (req, res) => {
+    const userDetailsList = await Subscription.aggregate([
+        {
+            $match: {
+                subscriber: req.user._id, // Match the current user's subscriptions
+            }
+        },
+        {
+            $lookup: {
+                from: "users", // The name of the users collection
+                localField: "channel", // Field in the Subscription collection
+                foreignField: "_id", // Field in the Users collection
+                as: "userDetails", // Alias for the joined user details
+            }
+        },
+        {
+            $unwind: "$userDetails" // Flatten the user details array to a single object
+        },
+        {
+            $project: {
+                _id: 0, // Exclude the subscription document ID
+                "userDetails._id": 1,
+                "userDetails.fullName": 1, // Include the user details you want
+                "userDetails.email": 1, 
+                "userDetails.avatar": 1, // Example: Add user avatar if required
+                "userDetails.username": 1,
+            }
+        },
+        {
+            $replaceRoot: { newRoot: "$userDetails" } // Replace the root with userDetails
+        }
+    ]);
 
-    if(!subscriptions){
-        throw new ApiError(400,"No subscriptions found for this user");
+    if (!userDetailsList || userDetailsList.length === 0) {
+        throw new ApiError(400, "No subscriptions found for this user");
     }
 
-    res.status(200).json(new ApiResponse(200, subscriptions,"Subscriptions found successfully"))
-})
+    res.status(200).json(new ApiResponse(200, userDetailsList, "Subscriptions found successfully"));
+});
+
 
 export { getSubscribedChannels, toggleSubscription, unSubscribe, getUserSubscriptions }

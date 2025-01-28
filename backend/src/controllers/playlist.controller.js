@@ -188,23 +188,120 @@ const removeVideoFromPlayList = asyncHandler(async (req,res)=>{
 const getUserPlaylists = asyncHandler(async (req,res)=>{
     const userId = req.user._id;
 
-    if(!userId){
-        throw new ApiError(400,"userId is required")
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new ApiError(400, "Invalid userId format");
     }
     
+    // const playLists = await Playlist.find({owner: userId})
     const playLists = await Playlist.aggregate([
         {
             $match: {
-                owner: mongoose.Types.ObjectId(userId)
+                owner: userId
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                let: { videosList: "$videosList" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $in: ["$_id", "$$videosList"]
+                            }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "users",
+                            let: { ownerId: "$owner" },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ["$_id", "$$ownerId"]
+                                        }
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        fullName: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ],
+                            as: "owner"
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: { $arrayElemAt: ["$owner", 0] } // Extract the first user document
+                        }
+                    }
+                ],
+                as: "videoList"
             }
         }
-    ])
+    ]);
+    
 
     if(playLists.length === 0){
         throw new ApiError(404,"No playlists found for the user")
     }
 
     res.status(200).json(new ApiResponse(200,playLists,"Playlists fetched successfully"))
+
+    // {
+    //     "success": true,
+    //     "message": [
+    //         {
+    //             "_id": "6778ff5b2f4e070e10f149d7",
+    //             "owner": "67698c2cccd6e1c25ac9276f",
+    //             "videosList": [
+    //                 "6777ade58a1df574c804aa44"
+    //             ],
+    //             "name": "News Playlist",
+    //             "description": "New Orleans attack updates.",
+    //             "createdAt": "2025-01-04T09:28:59.088Z",
+    //             "updatedAt": "2025-01-04T09:41:36.033Z",
+    //             "__v": 0,
+    //             "videoList": [
+    //                 {
+    //                     "_id": "6777ade58a1df574c804aa44",
+    //                     "videoFile": "http://res.cloudinary.com/dlipeltnv/video/upload/v1735896546/hkpdhcnmovycvyvubrf2.mp3",
+    //                     "thumbnail": "http://res.cloudinary.com/dlipeltnv/image/upload/v1735896548/gwqrxqamjk5pp6t7bwq4.jpg",
+    //                     "title": "New Orleans attack: death toll rises to 15",
+    //                     "description": "US authorities say they do not believe the man who rammed his truck into New Year revellers acted alone. Also: a Tesla Cybertruck explodes outside Trump Tower in Las Vegas, and the shipping forecast celebrates 100 years.",
+    //                     "duration": 2011.324082,
+    //                     "views": 0,
+    //                     "isPublished": true,
+    //                     "owner": {
+    //                         "_id": "6777aaf78a1df574c804aa25",
+    //                         "username": "user1",
+    //                         "fullName": "User 1",
+    //                         "avatar": "http://res.cloudinary.com/dlipeltnv/image/upload/v1735895797/pnm10qgoamidrze3v6cd.png"
+    //                     },
+    //                     "__v": 0
+    //                 }
+    //             ]
+    //         },
+    //         {
+    //             "_id": "677900852f4e070e10f14a5b",
+    //             "owner": "67698c2cccd6e1c25ac9276f",
+    //             "videosList": [],
+    //             "name": "News Playlist 2",
+    //             "description": "Additional important news",
+    //             "createdAt": "2025-01-04T09:33:57.237Z",
+    //             "updatedAt": "2025-01-04T09:33:57.237Z",
+    //             "__v": 0,
+    //             "videoList": []
+    //         }
+    //     ],
+    //     "data": "Playlists fetched successfully",
+    //     "statusCode": 200
+    // }
+
 })
 
 export {createPlayList ,getPlayList ,updatePlayListDetails, deletePlayList, addVideoToPlayList, removeVideoFromPlayList, getUserPlaylists}

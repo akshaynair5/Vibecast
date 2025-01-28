@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, updateAvatar, updateCoverImage, updateUserDetails } from "../controllers/user.controller.js";
+import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, userContent, updateAvatar, updateCoverImage, updateUserDetails, clearHistory } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { get } from "mongoose";
@@ -22,7 +22,7 @@ router.route("/register").post(
 
 router.route("/login").post(loginUser);
 
-router.route("/logout").post(verifyJWT, logoutUser)  
+router.route("/logout").post(logoutUser)  
 
 router.route("/refresh-token").post(refreshAccessToken)
 // Here req. res, next etc are sent by default to each of the functions in the controller. 
@@ -32,14 +32,18 @@ router.route("/change-password").post(verifyJWT,changeCurrentPassword)
 
 router.route("/current-user").post(verifyJWT,getCurrentUser)
 
-router.route("/upload-avatar").patch(upload.single("avatar"), updateAvatar)
+router.route("/upload-avatar").patch(verifyJWT,upload.single("avatar"), updateAvatar)
 
-router.route("/upload-cover-image").patch(upload.single("coverImage"), updateCoverImage)
+router.route("/upload-cover-image").patch(verifyJWT, upload.single("coverImage"), updateCoverImage)
 
 router.route("/update-user-details").patch(verifyJWT,updateUserDetails)
 
 router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
 
 router.route("/watch-history").get(verifyJWT, getWatchHistory)
+
+router.route("/home").get(verifyJWT, userContent)
+
+router.route('/clear-history').delete(verifyJWT, clearHistory)
 
 export default router; 

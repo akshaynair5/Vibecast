@@ -6,7 +6,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET // Click 'View API Keys' above to copy your API secret
 });
 
-const deleteFromCloudinary = async (fileUrl) => {
+const deleteFromCloudinary = async (fileUrl,type) => {
     try {
         // Extract publicId from URL (excluding file extension and query params if any)
         const parts = fileUrl.split('/');
@@ -15,7 +15,7 @@ const deleteFromCloudinary = async (fileUrl) => {
 
         // Destroy the image in Cloudinary
         const res = await cloudinary.uploader.destroy(publicId, {
-            resource_type: 'auto'  // auto detects type (image, video, etc.)
+            resource_type: `${type}`  // auto detects type (image, video, etc.)
         });
 
         return res;  // Return the result of the destroy operation

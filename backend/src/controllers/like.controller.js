@@ -3,25 +3,30 @@ import ApiError from "../utils/apiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const likeVideo = asyncHandler(async (req,res)=>{
+const likeVideo = asyncHandler(async (req, res) => {
     const videoId = req.params.videoId;
     const userId = req.user._id;
-
-    if(!videoId || !userId){
-        throw new ApiError(400, "Please provide videoId and userId");
+  
+    if (!videoId || !userId) {
+      throw new ApiError(400, "Please provide videoId and userId");
     }
-
-    const like = await Like.create({
+    console.log(videoId, userId)
+    try {
+      const like = await Like.create({
         likedBy: userId,
         video: videoId,
-    })
-
-    if(!like){
-        throw new ApiError(500, "Could not like the video");
+      });
+  
+      res.status(200).json(new ApiResponse(200, like, "Video liked successfully"));
+    } catch (err) {
+        console.log(err)
+      if (err.code === 11000) {
+        throw new ApiError(400, "You have already liked this video");
+      }
+      throw new ApiError(500, "Could not like the video");
     }
-
-    res.status(200).json(new ApiResponse(200, like, "Video liked successfully"))
-})
+});
+  
 
 const likeComment = asyncHandler(async (req,res)=>{
     const commentId = req.params.videoId;
@@ -43,17 +48,17 @@ const likeComment = asyncHandler(async (req,res)=>{
     res.status(200).json(new ApiResponse(200, like, "Comment liked successfully"))
 })
 
-const likeTweet = asyncHandler(async (req,res)=>{
-    const tweetId = req.params.videoId;
+const likeStream = asyncHandler(async (req,res)=>{
+    const streamId = req.params.streamId;
     const userId = req.user._id;
 
-    if(!videoId || !userId){
+    if(!streamId || !userId){
         throw new ApiError(400, "Please provide tweetId and userId");
     }
 
     const like = await Like.create({
         likedBy: userId,
-        tweet: tweetId,
+        stream: streamId,
     })
 
     if(!like){
@@ -63,10 +68,10 @@ const likeTweet = asyncHandler(async (req,res)=>{
     res.status(200).json(new ApiResponse(200, like, "Tweet liked successfully"))
 })
 
-const getLikedVideos = asyncHandler(async (req,res)=>{
+const getLikedVideos = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
-    if(!userId){
+    if (!userId) {
         throw new ApiError(400, "Please provide userId");
     }
 
@@ -74,39 +79,50 @@ const getLikedVideos = asyncHandler(async (req,res)=>{
         {
             $match: {
                 likedBy: userId,
-                video: {$exists: true}
+                video: { $exists: true }
             }
         },
         {
             $lookup: {
-                from:"videos",
+                from: "videos",
                 localField: "video",
                 foreignField: "_id",
                 as: "videoDetails",
             }
         },
         {
-            $project: {
-                videoDetails: { $arrayElemAt: ["$videoDetails", 0] }
+            $replaceRoot: {
+                newRoot: { $arrayElemAt: ["$videoDetails", 0] }
             }
         }
-    ])
+    ]);
 
-    if(!likes){
+    if (!likes) {
         throw new ApiError(500, "Could not get liked videos");
     }
 
-    res.status(200).json(new ApiResponse(200, likes, "Liked videos retrieved successfully"))
-})
+    res.status(200).json(new ApiResponse(200, likes, "Liked videos retrieved successfully"));
+});
+
 
 const unlike = asyncHandler(async (req,res)=>{
-    const likeId = req.params.likeId;
+    const likedBy = req.query.likedBy;
+    const itemId = req.query.videoId || req.query.commentId || req.query.streamId;
+    console.log("unlike", likedBy, itemId)
+    console.log(req.body)
 
-    if(!likeId){
+    if(!likedBy || !itemId){
         throw new ApiError(400, "Please provide like-ID");
     }
-
-    const unLike = await Like.findByIdAndDelete(likeId)
+        const unLike = await Like.deleteOne({
+            video: itemId,
+            likedBy: likedBy,
+        });
+        if (unLike) {
+            console.log("Like entry deleted successfully.");
+        } else {
+            console.log("No matching like entry found.");
+        }
 
     if(!unLike){
         throw new ApiError(500, "Could not unlike");
@@ -117,4 +133,4 @@ const unlike = asyncHandler(async (req,res)=>{
 
 
 
-export { likeVideo, likeComment, likeTweet, getLikedVideos, unlike};
+export { likeVideo, likeComment, likeStream, getLikedVideos, unlike};
