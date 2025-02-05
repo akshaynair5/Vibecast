@@ -100,7 +100,7 @@ function Home() {
   return (
     <div className="fixed top-0 left-0 bg-slate-700 w-screen h-screen overflow-y-scroll  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent"
          style={{
-           backgroundImage: 'linear-gradient(to right top, #0a0908, #080706, #050404, #030202, #000000)',
+          backgroundImage: 'linear-gradient(to bottom, #515151, #3d3d3d, #2a2a2a, #191919, #000000)',
          }}
     >
       <Navbar />
@@ -168,7 +168,8 @@ function Home() {
           <section
             className="relative bg-cover bg-center bg-no-repeat rounded-lg h-auto flex flex-col justify-between p-4 mb-8"
             style={{
-              backgroundImage: 'linear-gradient(to right top, #2d004a, #2f0031, #27001e, #1c000e, #000000)',
+              backgroundImage: 'linear-gradient(to right, #387174, #386365, #375556, #354848, #323b3b)',
+              backgroundOpacity: '60',
               minHeight: '400px',
             }}
           >
@@ -257,17 +258,13 @@ function Home() {
         {/* Topics Section */}
         {(activeSection === 'topics' || activeSection === 'All') && (
           <section className="mb-2 mt-10">
-            {/* Banner */}
-            <div
-              className="relative bg-cover bg-center rounded-lg h-48 flex items-center justify-center mb-4 z-0"
-              style={{
-                backgroundImage: `url(${exploreTopics})`,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fallback if image doesn't load
-                backgroundBlendMode: 'overlay',
-              }}
-            >
-              <h2 className="text-4xl font-bold text-white text-center">Explore Topics</h2>
-            </div>
+          <h2 className="text-4xl font-extrabold text-white text-center my-12 tracking-wide">
+             Discover & Explore <span className="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400  font-extrabold tracking-wide drop-shadow-lg">
+              Trending Topics
+            </span>
+          </h2>
+
+            
             {topicsContent.length > 0 ? (
               topicsContent.map((topic) => {
                 // Topic-specific gradients

@@ -171,7 +171,6 @@ const getVideoById = asyncHandler(async (req, res) => {
             },
         },
         {
-            // Add user info to each comment
             $addFields: {
                 comments: {
                     $map: {
@@ -182,16 +181,60 @@ const getVideoById = asyncHandler(async (req, res) => {
                             content: "$$comment.content",
                             createdAt: "$$comment.createdAt",
                             owner: {
-                                $arrayElemAt: [
-                                    {
-                                        $filter: {
-                                            input: "$commentOwners",
-                                            as: "owner",
-                                            cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+                                _id: {
+                                    $arrayElemAt: [
+                                        {
+                                            $map: {
+                                                input: {
+                                                    $filter: {
+                                                        input: "$commentOwners",
+                                                        as: "owner",
+                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+                                                    },
+                                                },
+                                                as: "matchedOwner",
+                                                in: "$$matchedOwner._id",
+                                            },
                                         },
-                                    },
-                                    0,
-                                ],
+                                        0,
+                                    ],
+                                },
+                                username: {
+                                    $arrayElemAt: [
+                                        {
+                                            $map: {
+                                                input: {
+                                                    $filter: {
+                                                        input: "$commentOwners",
+                                                        as: "owner",
+                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+                                                    },
+                                                },
+                                                as: "matchedOwner",
+                                                in: "$$matchedOwner.username",
+                                            },
+                                        },
+                                        0,
+                                    ],
+                                },
+                                avatar: {
+                                    $arrayElemAt: [
+                                        {
+                                            $map: {
+                                                input: {
+                                                    $filter: {
+                                                        input: "$commentOwners",
+                                                        as: "owner",
+                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+                                                    },
+                                                },
+                                                as: "matchedOwner",
+                                                in: "$$matchedOwner.avatar",
+                                            },
+                                        },
+                                        0,
+                                    ],
+                                },
                             },
                         },
                     },

@@ -7,6 +7,7 @@ import Likes from "./likeFormatter";
 import { set } from "date-fns";
 import PlaylistModal from "./playlistComponent";
 import { useNavigate } from "react-router-dom";
+import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X } from "lucide-react"
 
 export default function MusicPlayer() {
   const { currentAudio, setCurrentAudio, audioElement, currentUser, setCollectUser, collectUser} = useContext(Authcontext);
@@ -148,7 +149,8 @@ export default function MusicPlayer() {
       });
       setNewComment("");
       console.log(response.data.message);
-      currentAudio.audio.comments.push(response.data.message);
+      currentAudio.audio.comments.push({...response.data.message, owner: currentUser});
+      console.log(currentAudio)
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -173,207 +175,165 @@ export default function MusicPlayer() {
 
   return (
     <div
-        className={`fixed bg-slate-800 text-white transition-all duration-300 shadow-lg rounded-lg z-[1000] ${
-          isFullscreen
-            ? "w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0"
-            : isExpanded
-            ? "w-1/3 h-4/5 rounded-t-lg p-4 bottom-0 top-[12vh] left-[65vw]"
-            : "w-1/5 h-25 flex items-center p-4 left-[75vw] bottom-4"
-        }`}
-        onClick={!isExpanded ? toggleExpand : null}
-      >
-        {/* Fullscreen Toggle Button */}
-        {isExpanded && (
-          <button
-            className="absolute top-2 left-2 bg-slate-700 px-3 py-1 rounded text-xs hover:bg-slate-600"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleFullscreen();
-            }}
-          >
-            {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-          </button>
-        )}
+  className={`fixed text-white transition-all duration-300 shadow-lg rounded-lg z-[1000] backdrop-blur-lg bg-opacity-10 ${
+    isFullscreen
+      ? "w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0"
+      : isExpanded
+      ? "w-1/3 h-4/5 rounded-lg p-4 bottom-0 top-[12vh] left-[65vw] flex flex-col"
+      : "w-1/5 h-25 flex items-center p-4 left-[75vw] bottom-4"
+  }`}
+  onClick={!isExpanded ? toggleExpand : null}
+>
+    <div 
+    className="absolute inset-0 bg-cover bg-center rounded-lg"
+    style={{
+      backgroundImage: `url(${currentAudio?.audio?.thumbnail})`,
+      filter: "brightness(25%)", // Darken the image
+    }}
+  ></div>
+  <div className='relative z-10'>
+    {/* Fullscreen & Collapse Buttons */}
+  {isExpanded && (
+    <button
+      className="absolute top-2 left-2 bg-black/50 p-2 rounded-full hover:bg-black/70"
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleFullscreen();
+      }}
+    >
+      {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+    </button>
+  )}
+  {isExpanded && !isFullscreen && (
+    <button
+      className="absolute top-2 right-2 bg-red-500 p-2 rounded-full hover:bg-red-400"
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleExpand();
+      }}
+    >
+      <X size={18} />
+    </button>
+  )}
 
-        {/* Collapse/Unexpand Button */}
-        {isExpanded && !isFullscreen && (
-          <button
-            className="absolute top-2 right-2 bg-red-500 px-3 py-1 rounded text-xs hover:bg-red-400"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpand();
-            }}
-          >
-            Collapse
-          </button>
-        )}
-
-      {/* Content Layout */}
-      <div
-        className={`flex ${
-          isFullscreen ? "flex-col items-center w-1/2 h-full" :
-          isExpanded ? "flex-col items-center" : "flex flex-row"
-        } w-full h-full`}
-      >
-        {/* Thumbnail */}
-        <div className={`rounded-md ${
-              isFullscreen && currentAudio
-                ? "w-full h-auto pb-5"
-                : isExpanded && currentAudio
-                ? "w-full h-auto mb-4 mt-5"
-                : "w-[100%] h-auto"
-            } justify-center items-center flex flex-col`}>
-          <img
-            src={
-              currentAudio?.audio?.thumbnail
-                ? currentAudio.audio.thumbnail
-                : "https://via.placeholder.com/60"
-            }
-            alt="Album Art"
-            className={`rounded-md ${
-              isFullscreen && currentAudio
-                ? "w-1/2 h-auto"
-                : isExpanded && currentAudio
-                ? "w-[50%] h-auto mb-4"
-                : "w-full h-auto"
-            }`}
-          />
-          <div className="flex flex-col justify-center w-full pt-2">
-            <p className="text-s text-gray-400 cursor-pointer" onClick={handleUserSelect}>{currentAudio.audio?.ownerInfo[0].fullName || "Artist"}</p>
-            {
-              isExpanded || isFullscreen ? (
-                <p className="text-2xl text-white-400 text">{currentAudio.audio?.title || "Title Not Available"}</p>
-              ) : null
-            }
-          </div>
-        </div>
-
-        {/* Compressed Form */}
-        {!isFullscreen && !isExpanded && (
-          <>
-            <div className="flex flex-col ml-4 items-center w-[70%]">
-              <button
-                className="bg-slate-700 px-4 py-2 rounded-full hover:bg-slate-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlayPause();
-                }}
-              >
-                {play ? "Pause" : "Play"}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={progress}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  handleSliderChange(e);
-                }}
-                className="w-[12vw] mt-4 ml-4"
-              />
-            </div>
-          </>
-        )}
-
-        {/* Expanded or Fullscreen Form */}
-        {(isExpanded || isFullscreen) && (
-          <>
-            <div className="flex items-center justify-between w-full mt-4">
-              {/* Buttons */}
-              <button
-                className="bg-slate-700 px-4 py-2 rounded-full hover:bg-slate-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlayPause();
-                }}
-              >
-                {play ? "Pause" : "Play"}
-              </button>
-              <button className="bg-slate-700 px-4 py-2 rounded-full hover:bg-slate-600 h-10 w-15 flex items-center justify-center" onClick={(e)=>{currentAudio.audio?.isLiked? toggleUnLike(e) : toggleLike(e)}}>
-                  {
-                    currentAudio.audio?.isLiked 
-                      ? <img src={Like} alt="Unlike" className="h-6 mr-3" />
-                      : <img src={unLike} alt="Like" className="h-6 mr-3"  />
-                  }
-                  <Likes likes = {currentAudio.audio.likeCount} />
-              </button>
-
-              <button className="bg-slate-700 px-4 py-2 rounded-full hover:bg-slate-600" onClick={(e)=>{openPlaylistModal(e)}}>
-                Add to Playlist
-              </button>
-              {isPlaylistModalOpen && (
-                <PlaylistModal
-                  onClose={closePlaylistModal}
-                />
-              )}
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={(e) => {
-                e.stopPropagation();
-                handleSliderChange(e);
-              }}
-              className="w-full mt-4"
-            />
-          </>
-        )}
-        {
-          isExpanded || isFullscreen ? (
-            <div className="w-[95%] h-auto mt-4 m-[2.5%] bg-slate-600 rounded-md p-2">
-              <p className="text-lg text-white align-text-top-left">About</p>
-              <p className="text-lg text-white align-text-top-left">
-                {currentAudio?.audio?.description || "Description Not Available"}
-              </p>
-            </div>
-          ) : null
-        }
-      </div>
-      {
-        isFullscreen && (
-        <div
-          className={`flex ${
-            isFullscreen ? "flex-col items-center w-1/2 h-full" :
-            isExpanded ? "flex-col items-center" : "items-center"
-          } w-full h-full overflow-y-scroll`}
+  {/* Content */}
+  <div
+    className={`flex ${
+      isFullscreen ? "flex-row w-full h-full" : "flex-col w-full h-full"
+    }`}
+  >
+    {/* Audio Info (Left Side in Fullscreen, Centered in Expanded Mode) */}
+    <div
+      className={`flex flex-col items-center ${
+        isFullscreen ? "w-1/2 h-full" : "w-full"
+      }`}
+    >
+      <img
+        src={currentAudio?.audio?.thumbnail || "https://via.placeholder.com/60"}
+        alt="Album Art"
+        className="rounded-md w-1/2 h-auto shadow-lg"
+      />
+      <div className="flex flex-col justify-center w-full pt-2 text-center">
+        <p
+          className="text-sm text-gray-400 cursor-pointer"
+          onClick={handleUserSelect}
         >
-          <div className="w-full">
-          <div className="add-comment-section mt-4">
-              <textarea
-                className="w-full p-2 border rounded text-black"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              ></textarea>
-              <button
-                className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleAddComment}
-              >
-                Add Comment
-              </button>
-            </div>
-            <div className="comments-section">
-              {currentAudio.audio?.comments.map((comment, index) => (
-                <div key={index} className="flex items-center w-full mt-4">
-                  <img
-                    src={comment.owner.avatar}
-                    alt="User Profile Pic"
-                    className="w-10 h-10 rounded-full mr-4"
-                  />
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-400">{comment.owner.fullName}</p>
-                    <p className="text-sm">{comment.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {currentAudio.audio?.ownerInfo[0].fullName || "Artist"}
+        </p>
+        {(isExpanded || isFullscreen) && (
+          <p className="text-xl font-semibold text-white">
+            {currentAudio.audio?.title || "Title Not Available"}
+          </p>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center justify-between w-full mt-4">
+        <button
+          className="p-3 bg-black/50 rounded-full hover:bg-black/70"
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePlayPause();
+          }}
+        >
+          {play ? <Pause size={20} /> : <Play size={20} />}
+        </button>
+        <button
+          className="p-3 bg-black/50 rounded-full hover:bg-black/70"
+          onClick={(e) => {
+            currentAudio.audio?.isLiked ? toggleUnLike(e) : toggleLike(e);
+          }}
+        >
+          {currentAudio.audio?.isLiked ? (
+            <Heart size={20} className="text-red-500" />
+          ) : (
+            <HeartOff size={20} />
+          )}
+        </button>
+        <button
+          className="p-3 bg-black/50 rounded-full hover:bg-black/70"
+          onClick={openPlaylistModal}
+        >
+          <Plus size={20} />
+        </button>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={progress}
+        onChange={(e) => {
+          e.stopPropagation();
+          handleSliderChange(e);
+        }}
+        className="w-full mt-4 bg-gray-700 rounded-lg h-2"
+      />
+
+      {/* Description */}
+      {(isExpanded || isFullscreen) && (
+        <div className="w-[95%] bg-black/50 rounded-md p-3 mt-4">
+          <p className="text-lg font-semibold text-white">About</p>
+          <p className="text-sm text-gray-400">
+            {currentAudio?.audio?.description || "Description Not Available"}
+          </p>
         </div>
-        )
-      }
+      )}
     </div>
+
+    {/* Comments (Right Side in Fullscreen Mode) */}
+    {isFullscreen && (
+      <div className="flex flex-col w-1/2 h-full overflow-y-auto p-4">
+        <textarea
+          className="w-full p-2 border rounded bg-gray-800 text-white"
+          placeholder="Add a comment..."
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+        ></textarea>
+        <button
+          className="mt-2 bg-slate-700 text-white px-4 py-2 rounded"
+          onClick={handleAddComment}
+        >
+          Add Comment
+        </button>
+        <div className="mt-4">
+          {currentAudio.audio?.comments.map((comment, index) => (
+            <div key={index} className="flex items-center w-full mt-4">
+              <img
+                src={comment.owner._id == currentUser._id ? currentUser.avatar : comment.owner.avatar}
+                alt="User Profile Pic"
+                className="w-10 h-10 rounded-full mr-4"
+              />
+              <div className="flex flex-col">
+                <p className="text-xs text-gray-400">{comment.owner.username}</p>
+                <p className="text-sm text-white">{comment.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+  </div>
+</div>
   );
 }

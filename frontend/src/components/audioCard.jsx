@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { Authcontext } from "../contextProvider";
 import axiosInstance from "../services/axiosInstance";
 import { getFormattedCreationDate } from "../services/dateFormatter";
+import { Mic, PlusCircle, XCircle, Upload } from "lucide-react";
 
 const AudioCard = ({ audio, onUpdate, onDelete }) => {
   const [showUpdatePopup, setShowUpdatePopup] = useState(false);
@@ -47,7 +48,7 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
   };
 
   return (
-    <div className="bg-[#212529bc] p-4 rounded-lg shadow-md relative text-white flex flex-col justify-between min-w-[100%] max-w-[100%] max-h-[100%] z-10 mt-5">
+    <div className="bg-[#212529bc] p-4 rounded-lg shadow-md relative text-white flex flex-col justify-between min-w-[100%] max-w-[100%] max-h-[100%] mt-5">
       {/* Play Button and Duration */}
       <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 text-white text-sm px-2 py-1 rounded-md">
         {durationInMinutes} min
@@ -82,7 +83,7 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
       <div className="flex justify-between mt-4 space-x-2">
         {onUpdate && (
           <button
-            className="block w-full px-4 py-3 text-sm text-gray-100 bg-blue-600 hover:bg-blue-800 rounded-md transition-all"
+            className="block w-full px-4 py-3 text-sm text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-all"
             onClick={() => setShowUpdatePopup(true)}
           >
             Update
@@ -90,7 +91,7 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
         )}
         {onDelete && (
           <button
-            className="block w-full px-4 py-3 text-sm text-gray-100 bg-red-600 hover:bg-red-800 rounded-md transition-all"
+            className="block w-full px-4 py-3 text-sm text-red-400 bg-gray-800 hover:bg-gray-700 rounded-md transition-all"
             onClick={() => setShowDeletePopup(true)}
           >
             Delete
@@ -98,41 +99,47 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
         )}
       </div>
 
+
       {/* Update and Delete Popups */}
       {showUpdatePopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h4 className="text-lg font-semibold mb-4">Update Audio Info</h4>
-            <label className="block text-sm font-medium text-gray-700">
-              Title
-            </label>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 text-white rounded-lg p-6 max-w-md w-full shadow-lg">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-semibold">Update Audio Info</h4>
+              <button onClick={() => setShowUpdatePopup(false)}>
+                <XCircle size={22} className="text-gray-400 hover:text-gray-300 transition" />
+              </button>
+            </div>
+
+            {/* Title Input */}
+            <label className="block text-sm font-medium text-gray-300">Title</label>
             <input
               type="text"
               value={updatedInfo.title}
-              onChange={(e) =>
-                setUpdatedInfo({ ...updatedInfo, title: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              onChange={(e) => setUpdatedInfo({ ...updatedInfo, title: e.target.value })}
+              className="p-3 mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
-            <label className="block text-sm font-medium text-gray-700 mt-4">
-              Description
-            </label>
+
+            {/* Description Input */}
+            <label className="block text-sm font-medium text-gray-300 mt-4">Description</label>
             <textarea
               value={updatedInfo.description}
-              onChange={(e) =>
-                setUpdatedInfo({ ...updatedInfo, description: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              onChange={(e) => setUpdatedInfo({ ...updatedInfo, description: e.target.value })}
+              rows='4'
+              className="p-4 mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
-            <div className="mt-4 flex justify-end space-x-2">
+
+            {/* Modal Buttons */}
+            <div className="mt-6 flex justify-end space-x-[5%]">
               <button
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition w-[48%]"
                 onClick={() => setShowUpdatePopup(false)}
               >
                 Cancel
               </button>
               <button
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition w-[48%]"
                 onClick={handleUpdate}
               >
                 Save
@@ -140,25 +147,34 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
             </div>
           </div>
         </div>
-      )}
+        )}
 
-      {showDeletePopup && (
-        <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-[1000]">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h4 className="text-lg font-semibold mb-4">Are you sure?</h4>
-            <p className="text-sm text-gray-600">
-              Do you really want to delete this audio? This action cannot be
-              undone.
+        {showDeletePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 text-white rounded-lg p-6 max-w-md w-full shadow-lg">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-semibold">Are you sure?</h4>
+              <button onClick={() => setShowDeletePopup(false)}>
+                <XCircle size={22} className="text-gray-400 hover:text-gray-300 transition" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <p className="text-sm text-gray-500 mb-4">
+              Do you really want to delete this audio? This action cannot be undone.
             </p>
-            <div className="mt-4 flex justify-end space-x-2">
+
+            {/* Modal Buttons */}
+            <div className="mt-6 flex justify-end space-x-[5%]">
               <button
-                className="bg-gray-500 text-black px-4 py-2 rounded-md hover:bg-gray-600"
+                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition w-[48%]"
                 onClick={() => setShowDeletePopup(false)}
               >
                 Cancel
               </button>
               <button
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition w-[48%]"
                 onClick={() => {
                   onDelete(audio._id);
                   setShowDeletePopup(false);
@@ -169,7 +185,8 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
             </div>
           </div>
         </div>
-      )}
+        )}
+
     </div>
   );
 };

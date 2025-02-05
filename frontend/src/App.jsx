@@ -12,6 +12,7 @@ import MusicPlayer from './components/currentPlayer';
 import UserProfile from './pages/userProfile';
 import LiveStream from './components/liveStreamLocal';
 import LiveStreamListener from './components/liveStreamRemote';
+import SettingsPage from './pages/settings';
 
 export default function App() {
   const { currentUser, setCurrentUser, loading, setLoading, currentAudio, currentLiveStream, setCurrentLiveStream, currentRemoteAudio} = useContext(Authcontext);
@@ -97,6 +98,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage/>
               </ProtectedRoute>
             }
           />

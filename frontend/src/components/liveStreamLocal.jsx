@@ -216,99 +216,96 @@ const LiveStream = () => {
   };  
 
   return (
-    <div className="fixed top-20 right-5 w-64 bg-white shadow-lg rounded-lg p-4 border border-gray-300 z-50">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800">
-          {isLive ? "Live Stream" : "Start Stream"}
-        </h3>
-        {isLive && (
-          <div className="flex items-center">
-            <span className="animate-pulse w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-            <span className="text-sm font-medium text-red-600">LIVE</span>
-          </div>
-        )}
+<div className="fixed top-20 right-5 w-80 bg-gray-900 text-white shadow-xl rounded-lg p-4 border border-gray-700 z-50">
+  {/* Thumbnail Section */}
+  <div className="relative w-full h-44">
+    <img
+      src={currentLiveStream?.thumbnail || "https://via.placeholder.com/300"}
+      alt="Stream Thumbnail"
+      className="w-full h-full object-cover rounded-lg"
+    />
+    {isLive && (
+      <div className="absolute top-2 left-2 flex items-center bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+        <span className="animate-pulse w-2 h-2 rounded-full bg-white mr-2"></span> LIVE
       </div>
+    )}
+  </div>
 
-      {/* Thumbnail, Name, and Description */}
-      <div className="mt-4 space-y-2">
-        <img
-          src={currentLiveStream?.thumbnail || "https://via.placeholder.com/150x150"}
-          alt="Stream Thumbnail"
-          className="w-full h-32 object-cover rounded-lg"
-        />
-        <p className="text-s text-gray-400 cursor-pointer" onClick={handleUserSelect}>{currentLiveStream?.ownerInfo[0].fullName || "Artist"}</p>
-        <h4 className="text-md font-semibold text-gray-700">
-          {currentLiveStream?.title || "Stream Title"}
-        </h4>
-        <p className="text-sm text-gray-600">
-          {currentLiveStream?.description || "Stream Description"}
-        </p>
-      </div>
+  {/* Stream Info */}
+  <div className="mt-4">
+    <h4 className="text-lg font-semibold">{currentLiveStream?.title || "Stream Title"}</h4>
+    <p className="text-sm text-gray-400">{currentLiveStream?.description || "Stream Description"}</p>
+    
+    <p
+      className="text-sm text-gray-300 mt-2 cursor-pointer hover:text-white"
+      onClick={handleUserSelect}
+    >
+      {currentLiveStream?.ownerInfo[0]?.fullName || "Artist"}
+    </p>
+  </div>
 
-      {/* Audio */}
-      <div className="mt-4">
-        <audio ref={localAudioRef} autoPlay muted />
-      </div>
+  {/* Like & Audio Controls */}
+  <div className="mt-4 flex items-center justify-between">
+    <audio ref={localAudioRef} autoPlay muted className="hidden" />
+    <button
+      className="flex items-center bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-700"
+      onClick={(e) => { currentLiveStream?.isLiked ? toggleUnLike(e) : toggleLike(e) }}
+    >
+      <img
+        src={currentLiveStream?.isLiked ? Like : unLike}
+        alt="Like"
+        className="h-5 mr-2"
+      />
+      <Likes likes={currentLiveStream?.likeCount} />
+    </button>
+  </div>
 
-      <button className="bg-slate-700 px-4 py-2 rounded-full hover:bg-slate-600 h-10 w-15 flex items-center justify-center" onClick={(e)=>{currentLiveStream?.isLiked? toggleUnLike(e) : toggleLike(e)}}>
-                  {
-                    currentLiveStream?.isLiked 
-                      ? <img src={Like} alt="Unlike" className="h-6 mr-3" />
-                      : <img src={unLike} alt="Like" className="h-6 mr-3"  />
-                  }
-                  <Likes likes = {currentLiveStream.likeCount} />
-              </button>
+  {/* Start/Stop Stream Buttons */}
+  <div className="mt-4">
+    {!isLive ? (
+      <button
+        className="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
+        onClick={startStream}
+      >
+        Start Live
+      </button>
+    ) : (
+      <button
+        className="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700"
+        onClick={() => setIsStopConfirmOpen(true)}
+      >
+        Stop Live
+      </button>
+    )}
+  </div>
 
-
-      {/* Buttons */}
-      <div className="mt-4">
-        {!isLive ? (
+  {/* Stop Confirmation Popup */}
+  {isStopConfirmOpen && (
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-80">
+        <h3 className="text-lg font-semibold mb-4">Stop Stream?</h3>
+        <p className="text-sm mb-6">Are you sure you want to stop the live stream? This action cannot be undone.</p>
+        <div className="flex justify-end space-x-4">
           <button
-            className="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
-            onClick={startStream}
+            className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600"
+            onClick={() => setIsStopConfirmOpen(false)}
           >
-            Start Live
+            Cancel
           </button>
-        ) : (
           <button
-            className="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700"
-            onClick={() => setIsStopConfirmOpen(true)}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            onClick={() => {
+              stopStream();
+              setIsStopConfirmOpen(false);
+            }}
           >
-            Stop Live
+            Stop Stream
           </button>
-        )}
-      </div>
-
-      {/* Confirmation Popup */}
-      {isStopConfirmOpen && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Stop Stream?</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to stop the live stream? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-                onClick={() => setIsStopConfirmOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                onClick={() => {
-                  stopStream();
-                  setIsStopConfirmOpen(false);
-                }}
-              >
-                Stop Stream
-              </button>
-            </div>
-          </div>
         </div>
-      )}
+      </div>
     </div>
+  )}
+</div>
   );
 };
 

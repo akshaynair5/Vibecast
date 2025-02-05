@@ -78,114 +78,116 @@ const SearchAudioComponent = () => {
   
 
   return (
-    <form onSubmit={handleSearch} className="w-[40vw] justify-center items-center align-middle relative">
-        <div className="flex">
-            {/* Search Input */}
-            <div className="relative w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="absolute w-5 h-5 top-2.5 left-2.5 text-slate-600">
-              <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
-            </svg>  
-            <input
-              type="search"
-              id="search-dropdown"
-              className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border-2 border-gray-700 rounded-md pl-10 pr-3 py-2 transition duration-300 ease focus:border-slate-400 hover:border-gray-500 shadow-sm focus:shadow focus:ring-0 focus:outline-none active:outline-none"
-              placeholder="Search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              required
+    <form onSubmit={handleSearch} className="w-[40vw] relative">
+      <div className="flex">
+        {/* Search Input */}
+        <div className="relative w-full">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="white"
+            className="absolute w-5 h-5 top-2.5 left-2.5 text-slate-600"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+              clipRule="evenodd"
             />
-            </div>
+          </svg>
+          <input
+            type="search"
+            id="search-dropdown"
+            className="w-full bg-transparent placeholder:text-white text-sm border-2 border-none rounded-md pl-10 pr-3 py-2 transition duration-300 ease focus:border-slate-400 hover:border-gray-500 shadow-lg focus:shadow focus:ring-0 focus:outline-none active:outline-none"
+            placeholder="Search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            required
+          />
         </div>
+      </div>
 
-        {/* Popup Menu */}
-        {showPopup && (
-            <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-lg mt-2 z-20">
-            {/* Toggle Option */}
-            <div className="flex justify-around py-2 bg-gray-100 border-b border-gray-200">
-                <button
-                className={`px-4 py-2 ${view === 'users' ? 'font-semibold text-blue-700' : 'text-gray-600'}`}
-                onClick={() => setView('users')}
-                >
-                Users
-                </button>
-                <button
-                className={`px-4 py-2 ${view === 'audios' ? 'font-semibold text-blue-700' : 'text-gray-600'}`}
-                onClick={() => setView('audios')}
-                >
-                Audio/Video
-                </button>
-                <button
-                className={`px-4 py-2 ${view === 'streams' ? 'font-semibold text-blue-700' : 'text-gray-600'}`}
-                onClick={() => setView('streams')}
-                >
-                Live Streams
-                </button>
+      {/* Results Dropdown */}
+      {showPopup && (
+        <div className="absolute w-full bg-gray-900 text-white rounded-md mt-2 shadow-lg z-50 p-2 min-h-[64vh] overflow-y-auto border border-gray-700">
+          {/* Toggle Tabs */}
+          <div className="flex justify-around py-2 bg-gray-800 border-b border-gray-700">
+            <button
+              className={`px-4 py-2 ${view === 'users' ? 'font-semibold text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
+              onClick={() => setView('users')}
+            >
+              Users
+            </button>
+            <button
+              className={`px-4 py-2 ${view === 'audios' ? 'font-semibold text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
+              onClick={() => setView('audios')}
+            >
+              Audio/Video
+            </button>
+            <button
+              className={`px-4 py-2 ${view === 'streams' ? 'font-semibold text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
+              onClick={() => setView('streams')}
+            >
+              Live Streams
+            </button>
+          </div>
+
+          {/* Users Results */}
+          {view === 'users' && (
+            <div className="p-2 min-h-[100%] overflow-y-auto custom-scrollbar">
+              {results.users.length > 0 ? (
+                results.users.map((user, index) => (
+                  <div key={index} className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg shadow-md mb-1">
+                    <img
+                      src={user.avatar}
+                      alt={`${user.fullName}'s profile`}
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">{user.fullName}</h4>
+                      <p className="text-gray-400 text-xs">@{user.username}</p>
+                    </div>
+                    <button
+                      onClick={() => handleChannelOpen(user)}
+                      className="ml-auto px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400">No users found</p>
+              )}
             </div>
+          )}
 
-            {/* Users Results */}
-            {view === 'users' && (
-                <div className="p-4 max-h-64 overflow-y-auto">
-                <p className="font-medium text-gray-700">Users</p>
-                {results.users.length > 0 ? (
-                    results.users.map((user, index) => (
-                        <div
-                            key={index}
-                            className="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-md"
-                        >
-                            <img
-                            src={user.avatar}
-                            alt={`${user.fullName}'s profile`}
-                            className="w-16 h-16 rounded-full mb-4"
-                            />
-                            <h4 className="text-lg font-semibold">{user.fullName}</h4>
-                            <p className="text-gray-500">@{user.username}</p>
-                            <button
-                            onClick={() => handleChannelOpen(user)}
-                            className="mt-2 px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-                            >
-                            View Channel
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-sm text-gray-500">No users found</p>
-                )}
-                </div>
-            )}
-
-            {/* Audio/Video Results */}
-            {view === 'audios' && (
-                <div className="p-4 grid grid-cols-4 gap-4 max-h-64 overflow-y-auto">
-                {results.audios.length > 0 ? (
-                    results.audios.map((audio) => (
-                    <AudioCard key={audio._id} audio={audio} />
-                    ))
-                ) : (
-                    <p className="col-span-4 text-sm text-gray-500">No audios found</p>
-                )}
-                </div>
-            )}
-
-            {view === 'streams' && (
-                <div className="p-4 grid grid-cols-4 gap-4 max-h-64 overflow-y-auto">
-                {results.streams.length > 0 ? (
-                    results.streams.map((stream) => (
-                    <StreamCard key={stream._id} stream={stream} />
-                    ))
-                ) : (
-                    <p className="col-span-4 text-sm text-gray-500">No Live Streams found</p>
-                )}
-                </div>
-            )}
-
+          {/* Audio/Video Results */}
+          {view === 'audios' && (
+            <div className="p-2 grid grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
+              {results.audios.length > 0 ? (
+                results.audios.map((audio) => <AudioCard key={audio._id} audio={audio} />)
+              ) : (
+                <p className="col-span-3 text-sm text-gray-400">No audios found</p>
+              )}
             </div>
-        )}
+          )}
 
-        {/* Loading/Error Messages */}
-        {loading && <p className="text-sm text-gray-500">Loading...</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        </form>
+          {/* Streams Results */}
+          {view === 'streams' && (
+            <div className="p-2 grid grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
+              {results.streams.length > 0 ? (
+                results.streams.map((stream) => <StreamCard key={stream._id} stream={stream} />)
+              ) : (
+                <p className="col-span-3 text-sm text-gray-400">No Live Streams found</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
+      {/* Loading/Error Messages */}
+      {loading && <p className="text-sm text-gray-500">Loading...</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </form>
   );
 };
 

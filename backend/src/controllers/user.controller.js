@@ -223,14 +223,14 @@ const getCurrentUser = asyncHandler(async (req,res)=>{
 })
 
 const updateUserDetails = asyncHandler(async (req,res)=>{
-    const {fullName,email} = req.body;
+    const {fullName, description, email} = req.body;
 
-    if(!(fullName || email)){
+    if(!(fullName || email || description)){
         throw new ApiError(400,"Full Name or Email is required")
     }
 
-    emailExists = await User.findOne({email})
-    if(emailExists){
+    const emailExists = await User.findOne({email})
+    if(emailExists && emailExists._id.toString() !== req.user?._id.toString()){
         throw new ApiError(409,"Email already exists");
     }
 
@@ -244,7 +244,8 @@ const updateUserDetails = asyncHandler(async (req,res)=>{
         {
             $set:{
                 fullName,
-                email
+                email,
+                description
             }   
         },
         {new:true}

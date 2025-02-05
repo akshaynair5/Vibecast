@@ -14,6 +14,22 @@ function UserProfile() {
     const [userAudioData, setUserAudioData] = useState([]);
     const [userProfileData, setUserProfileData] = useState([]);
     const [liveStreams, setLiveStreams] = useState([]);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+      const checkScreenSize = () => {
+        if (window.innerWidth <= 768) {
+          setIsMobile(true);
+        } else {
+          setIsMobile(false);
+        }
+      };
+    
+      window.addEventListener('resize', checkScreenSize);
+      checkScreenSize(); // Check screen size on initial load
+    
+      return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);  
 
     useEffect(()=>{
        const fetchUserProfileData = async ()=>{
@@ -59,18 +75,22 @@ function UserProfile() {
     }
 
   return (
-    <div className='fixed top-0 left-0 bg-slate-700 w-screen h-screen overflow-y-scroll scrollbar-thin scrollbar-thumb-scrollbar scrollbar-track-transparent z-10'>
+    <div className='fixed top-0 left-0 w-screen h-screen overflow-y-scroll scrollbar-thin scrollbar-thumb-scrollbar scrollbar-track-transparent z-10'
+      style={{
+        backgroundImage: 'linear-gradient(to bottom, #515151, #3d3d3d, #2a2a2a, #191919, #000000)',
+      }}
+    >
       <Navbar/>
       <Sidebar/>
 
-      <div className="min-h-screen bg-slate-700 text-white">
+      <div className="min-h-screen bg-transparent text-white container mx-auto px-4">
       {/* Cover Image Section */}
-      <div className="relative w-full h-64 bg-slate-700">
+      <div className="relative w-full h-64 bg-transparent">
       {/* Cover Image */}
       <img
         src={userProfileData?.coverImage}
         alt="Cover"
-        className="object-cover w-full h-full rounded-b-lg cursor-pointer z-0"
+        className="object-cover w-full h-full rounded-lg cursor-pointer z-0 opacity-50"
       />
 
       {/* User Name */}
@@ -82,7 +102,7 @@ function UserProfile() {
     </div>
 
       {/* User Info Section */}
-      <div className="max-w-7xl mx-auto px-4 py-8 bg-slate-700 text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8 bg-transparent text-white">
       {/* Profile Section */}
       <div className="flex flex-col md:flex-row md:items-center md:space-x-8">
         {/* Profile Picture */}
@@ -94,87 +114,119 @@ function UserProfile() {
           />
         </div>
 
-        {/* User Info */}
-        <div className="flex flex-col justify-center space-y-2">
-          <h2 className="text-2xl font-bold text-white">
-            {userProfileData?.fullName}
-          </h2>
-          <p className="text-sm text-gray-400">
-            Description or bio about the user goes here.
-          </p>
+        <div className="flex flex-col items-center text-center space-y-3 p-4 bg-transparent rounded-xl w-full sm:w-[80%] mx-auto">
+          <h2 className="text-2xl font-semibold text-white">{currentUser.fullName}</h2>
+          <p className="text-sm text-gray-400">Description or bio about the user goes here.</p>
 
-          <button
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                onClick={userProfileData?.isSubscribed? handleUnSubscription : handleSubscription}
+          <div className="flex gap-3">
+            <button
+                  className="flex items-center gap-2 bg-gray-800 text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+                  onClick={userProfileData?.isSubscribed? handleUnSubscription : handleSubscription}
+              >
+                  {userProfileData?.isSubscribed? "Subscribed" : "Subscribe"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section
+      className="relative bg-cover bg-center bg-no-repeat rounded-lg h-auto flex flex-col justify-between p-4 mb-8"
+      style={{
+        backgroundImage: 'linear-gradient(to bottom, #4a3038, #3d262c, #311d21, #251416, #1b0808)',
+        minHeight: '400px',
+        backgroundOpacity: '0.5',
+      }}
+    >
+      <div className="flex flex-col items-start justify-center text-white space-y-4">
+        <h2 className="text-4xl font-bold">Live Streams</h2>
+        <button className="flex items-center text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-70" 
+          // onClick={() => { handleScrollRight(liveStreamRef); }}
+        >
+          Explore <span className="ml-2">→</span>
+        </button>
+      </div>
+
+      <div
+        className="flex overflow-x-auto p-2  relative first-line scrollbar-none"
+        style={{
+          scrollSnapType: 'x mandatory',
+          flexDirection: isMobile ? 'column' : 'row',
+        }}
+        // ref={liveStreamRef}
+      >
+        {liveStreams?.length > 0 ? (
+          liveStreams.map((stream, index) => (
+            <div
+              key={index}
+              style={{
+                minWidth: isMobile ? '100%' : '25%',
+                maxWidth: isMobile ? '100%' : '25%',
+                marginLeft: isMobile ? '0' : '2%',
+              }}
             >
-                {userProfileData?.isSubscribed? "Subscribed" : "Subscribe"}
-          </button>
-
-        </div>
+              <StreamCard stream={stream} />
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No live streams available at the moment.</p>
+        )}
       </div>
-    </div>
-    <div className="bg-slate-700 py-8">
-      <div className="max-w-7xl mx-auto px-4 relative z-0">
-        <h3 className="text-2xl font-semibold text-gray-100 mb-6">Live Streams</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 z-0">
-          {/* Example of a single live stream item */}
-          {liveStreams?.length > 0 &&
-            liveStreams.map((stream, index) => (
-              <StreamCard stream={stream} key={index} />
-            ))}
+    </section>
 
-          {/* If no live streams are available */}
-          {liveStreams?.length === 0 && (
-            <div className="bg-gray-50 p-4 rounded-lg shadow-md relative z-0">
-              <img
-                src="https://via.placeholder.com/300x200"
-                alt="Live Stream"
-                className="w-full h-40 object-cover rounded-md"
+    <section
+      className="relative bg-cover bg-center bg-no-repeat rounded-lg h-auto flex flex-col justify-between p-4 mb-8"
+      style={{
+        backgroundImage: 'linear-gradient(to bottom, #436b69, #365958, #2a4847, #1f3737, #142727)',
+        minHeight: '400px',
+        backgroundOpacity: '0.5',
+      }}
+    >
+      <div className="flex flex-col items-start justify-center text-white space-y-4">
+        <h2 className="text-4xl font-bold">Audio/Podcasts</h2>
+        <button
+          className="flex items-center text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-70"
+          // onClick={() => { handleScrollRight(audioRef); }}
+        >
+          Explore <span className="ml-2">→</span>
+        </button>
+      </div>
+
+      <div
+        className="flex overflow-x-auto p-2 relative first-line scrollbar-none"
+        style={{
+          scrollSnapType: 'x mandatory',
+          flexDirection: isMobile ? 'column' : 'row',
+        }}
+        // ref={audioRef}
+      >
+        {userAudioData?.length > 0 ? (
+          userAudioData.map((audio, index) => (
+            <div
+              key={audio._id}
+              style={{
+                minWidth: isMobile ? '100%' : '25%',
+                maxWidth: isMobile ? '100%' : '25%',
+                marginLeft: isMobile ? '0' : '2%',
+              }}
+            >
+              <AudioCard
+                key={index}
+                audio={audio}
               />
-              <h4 className="mt-2 text-lg font-semibold text-gray-800">
-                Stream Title
-              </h4>
-              <p className="text-sm text-gray-600">
-                No live streams available at the moment.
-              </p>
             </div>
-          )}
-        </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No Audios available at the moment.</p>
+        )}
+      </div>
+    </section>
+
       </div>
     </div>
 
-      {/* User's Audio/Podcast Section */}
-      <div className="bg-slate-700 py-8">
-            <div className="max-w-7xl mx-auto px-4 relative z-0">
-                <h3 className="text-2xl font-semibold text-gray-100 mb-6">Audio/Podcasts</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 z-0">
-                {/* Example of a single audio/podcast item */}
-                {userAudioData?.length > 0 &&
-                    userAudioData.map((audio, index) => (
-                    <AudioCard
-                        key={index}
-                        audio={audio}
-                        className="relative z-0"
-                    />
-                    ))}
+    
 
-                {userAudioData?.length === 0 && (
-                    <div className="bg-gray-50 p-4 rounded-lg shadow-md relative z-0">
-                    <img
-                        src="https://via.placeholder.com/300x200"
-                        alt="Audio/Podcast"
-                        className="w-full h-40 object-cover rounded-md"
-                    />
-                    <h4 className="mt-2 text-lg font-semibold text-gray-800">Podcast Title</h4>
-                    <p className="text-sm text-gray-600">Short description of the podcast goes here.</p>
-                    </div>
-                )}
-                </div>
-            </div>
-        </div>
-
-      </div>
-    </div>
     )
 }
 

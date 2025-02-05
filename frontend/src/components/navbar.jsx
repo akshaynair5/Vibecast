@@ -19,8 +19,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-[100%] bg-black text-white z-10 pt-3 pb-2"
-      style={{backgroundImage: 'linear-gradient(to bottom, #242424, #1d1d1d, #161616, #0d0d0d, #000000)'}}
+    <nav className="w-[100%] bg-black text-white z-10 pt-3 pb-2 bg-transparent"
+      style={{
+        backgroundImage: location.pathname === '/' 
+          ? 'linear-gradient(to bottom, #242424, #1d1d1d, #161616, #0d0d0d, #000000)' 
+          : 'none'
+      }}
     >
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
@@ -150,14 +154,14 @@ const Navbar = () => {
                     >
                         Your Profile
                     </Link>
-                    <a
-                        href="#"
+                    <Link
+                        to="/settings"
                         className="block px-4 py-3 text-sm text-gray-100 hover:bg-gray-800 p-2 rounded-md"
                         role="menuitem"
                         onClick={closeDropdown}
                     >
                         Settings
-                    </a>
+                    </Link>
                     <a
                         href="#"
                         className="block px-4 py-3 text-sm text-gray-100 hover:bg-gray-800 p-2 rounded-md"
