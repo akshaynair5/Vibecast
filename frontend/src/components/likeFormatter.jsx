@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Formats a number into a shortened format.
  * @param {number} num - The number to format.
@@ -22,7 +20,7 @@ const formatNumber = (num) => {
  */
 const Likes = ({ likes }) => {
   return (
-    <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
+    <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>
       {formatNumber(likes)} Likes
     </div>
   );

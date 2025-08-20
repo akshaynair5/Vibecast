@@ -10,7 +10,12 @@ const likeVideo = asyncHandler(async (req, res) => {
     if (!videoId || !userId) {
       throw new ApiError(400, "Please provide videoId and userId");
     }
-    console.log(videoId, userId)
+
+    const isLiked = await Like.findOne({likedBy: userId, video: videoId});
+    if(isLiked){
+        throw new ApiError(400, "You have already liked this video");
+    }
+    
     try {
       const like = await Like.create({
         likedBy: userId,
@@ -29,11 +34,16 @@ const likeVideo = asyncHandler(async (req, res) => {
   
 
 const likeComment = asyncHandler(async (req,res)=>{
-    const commentId = req.params.videoId;
+    const commentId = req.params.commentId;
     const userId = req.user._id;
 
-    if(!videoId || !userId){
+    if(!commentId || !userId){
         throw new ApiError(400, "Please provide commentId and userId");
+    }
+
+    const isLiked = await Like.findOne({likedBy: userId, comment: commentId});
+    if(isLiked){
+        throw new ApiError(400, "You have already liked this comment");
     }
 
     const like = await Like.create({
@@ -54,6 +64,11 @@ const likeStream = asyncHandler(async (req,res)=>{
 
     if(!streamId || !userId){
         throw new ApiError(400, "Please provide tweetId and userId");
+    }
+
+    const isLiked = await Like.findOne({likedBy: userId, stream: streamId});
+    if(isLiked){
+        throw new ApiError(400, "You have already liked this tweet");
     }
 
     const like = await Like.create({
@@ -105,30 +120,37 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 });
 
 
-const unlike = asyncHandler(async (req,res)=>{
-    const likedBy = req.query.likedBy;
-    const itemId = req.query.videoId || req.query.commentId || req.query.streamId;
+const unlike = asyncHandler(async (req, res)=>{
+    const likedBy = req.user._id;
+    const itemId = (req.body.videoId || req.body.commentId || req.body.streamId);
     console.log("unlike", likedBy, itemId)
-    console.log(req.body)
 
     if(!likedBy || !itemId){
+        console.log(likedBy, itemId)
         throw new ApiError(400, "Please provide like-ID");
     }
-        const unLike = await Like.deleteOne({
-            video: itemId,
-            likedBy: likedBy,
+
+    try{
+        const unLike = await Like.findOneAndDelete({
+            $or: [
+                { video: itemId, likedBy: likedBy },
+                { comment: itemId, likedBy: likedBy },
+                { stream: itemId, likedBy: likedBy }
+            ]
         });
+
         if (unLike) {
             console.log("Like entry deleted successfully.");
         } else {
             console.log("No matching like entry found.");
         }
-
-    if(!unLike){
+    }
+    catch(err){
+        console.log(err);
         throw new ApiError(500, "Could not unlike");
     }
 
-    res.status(200).json(new ApiResponse(200, unlike, "un-liked successfully"))
+    res.status(200).json(new ApiResponse(200, {}, "un-liked successfully"))
 })
 
 

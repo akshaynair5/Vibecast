@@ -7,7 +7,7 @@ import Likes from "./likeFormatter";
 import { set } from "date-fns";
 import PlaylistModal from "./playlistComponent";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X } from "lucide-react"
+import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X, Trash2, Check, Edit3 } from "lucide-react"
 
 export default function MusicPlayer() {
   const { currentAudio, setCurrentAudio, audioElement, currentUser, setCollectUser, collectUser} = useContext(Authcontext);
@@ -18,6 +18,9 @@ export default function MusicPlayer() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [fullScreenLoading, setFullScreenLoading] = useState(false);
+  const [disableBtn, setDisableBtn] = useState(false);
+  const [editingComment, setEditingComment] = useState(null);
   const navigate = useNavigate();
 
   const togglePlayPause = () => {
@@ -31,6 +34,10 @@ export default function MusicPlayer() {
       return newPlayState;
     });
   };
+
+  useEffect(() => {
+    console.log("Current Audio:", currentAudio);
+  }, [currentAudio])
 
   const handleSliderChange = (e) => {
     const newTime = (e.target.value / 100) * audioElement?.duration;
@@ -90,6 +97,41 @@ export default function MusicPlayer() {
   }, [currentAudio, audioElement]);
 
   useEffect(() => {
+    if (!isFullscreen) return;
+
+    const fetchComments = async () => {
+      try {
+        setFullScreenLoading(true);
+        const { data } = await axiosInstance.get(`/comments/${currentAudio.audio._id}`);
+        console.log(data);
+
+        // ApiResponse => { status, data: <array>, message }
+        const comments = Array.isArray(data?.data) ? data.data : [];
+
+        setCurrentAudio(prev => ({
+          ...prev,
+          audio: {
+            ...prev.audio,
+            comments,  // <-- store the array directly
+          },
+        }));
+      } catch (e) {
+        console.error(e);
+        setCurrentAudio(prev => ({
+          ...prev,
+          audio: { ...prev.audio, comments: [] },
+        }));
+      } finally {
+        setFullScreenLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [isFullscreen]);
+
+
+
+  useEffect(() => {
     const updateProgress = () => {
       setProgress((audioElement.currentTime / audioElement.duration) * 100 || 0);
     };
@@ -102,6 +144,7 @@ export default function MusicPlayer() {
 
   const toggleLike = async(e) => {
     e.preventDefault();
+    setDisableBtn(true);
     try{
       if(isExpanded){
         setIsExpanded(true);
@@ -118,9 +161,11 @@ export default function MusicPlayer() {
     catch(err){
       console.log(err)
     }
+    setDisableBtn(false);
   }
   const toggleUnLike = async (e) => {
     e.preventDefault();
+    setDisableBtn(true);
     try {
       const res = await axiosInstance.delete(
         `/like/toggleDislike`,
@@ -135,13 +180,55 @@ export default function MusicPlayer() {
     } catch (err) {
       console.log(err);
     }
+    setDisableBtn(false);
   };
   
+    const toggleCommentLike = async(comment, index) => {
+      setDisableBtn(true);
+      try{
+        if(isExpanded){
+          setIsExpanded(true);
+        }
+        const res = await axiosInstance.post(`/like/toggle/c/${comment._id}`)
+        console.log(res.data)
+        setCurrentAudio((prev) => {
+          prev.audio.comments[index].hasLiked = true;
+          prev.audio.comments[index].likesCount += 1;
+          return { ...prev };
+        });
+        
+      }
+      catch(err){
+        console.log(err)
+      }
+      setDisableBtn(false);
+    }
+  const toggleCommentUnLike = async (comment, index) => {
+    setDisableBtn(true);
+    try {
+      const res = await axiosInstance.delete(
+        `/like/toggleDislike`,
+        {
+          data: { commentId: comment._id } 
+        }
+      );
+      console.log(res.data);
+      setCurrentAudio((prev) => {
+        // currentAudio.audio?.comments
+        prev.audio.comments[index].hasLiked = false;
+        prev.audio.comments[index].likesCount -= 1;
+        return { ...prev };
+      }); 
+    } catch (err) {
+      console.log(err);
+    }
+    setDisableBtn(false);
+  };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
-    console.log(newComment);
+    setDisableBtn(true);
 
     try {
       const response = await axiosInstance.post(`/comments/${currentAudio.audio._id}`, {
@@ -154,6 +241,8 @@ export default function MusicPlayer() {
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
+
+    setDisableBtn(false);
   };
 
   const openPlaylistModal = (e) => {
@@ -170,7 +259,59 @@ export default function MusicPlayer() {
       navigate('/profile')
     }
     setCollectUser(currentAudio.audio.ownerInfo[0])
-    navigate(`/${currentAudio.audio.ownerInfo[0].username}`); 
+    if(isExpanded || isFullscreen){
+      setIsExpanded(false);
+      setIsFullscreen(false);
+    }
+    navigate(`/${currentAudio.audio.ownerInfo[0].username}`);
+    
+  }
+
+  const handleCommentUserSelect = (username) => {
+    if(username === currentUser.username){
+      navigate('/profile')
+    }
+    setCollectUser({username: username});
+    if(isExpanded || isFullscreen){
+      setIsExpanded(false);
+      setIsFullscreen(false);
+    }
+    navigate(`/${username}`);
+  }
+
+  const handleSaveEdit = async (commentId, index, editContent) => {
+    // if (!editContent.trim()) return;
+    setDisableBtn(true);
+    console.log(editContent)
+    try {
+      const res = await axiosInstance.patch(`/comments/c/${commentId}`, {data: {comment: editContent}});
+        setCurrentAudio((prev) => {
+        // currentAudio.audio?.comments
+        prev.audio.comments[index].content = editContent;
+        return { ...prev };
+      }); 
+    }
+    catch (err) {
+      console.log(err);
+    }
+
+    setEditingComment(null);
+    setDisableBtn(false);
+  }
+
+  const handleDeleteComment = async (commentId, index) => {
+    setDisableBtn(true);
+    try {
+      const res = await axiosInstance.delete(`/comments/c/${commentId}`);
+      console.log(res.data);
+      setCurrentAudio((prev) => {
+        prev.audio.comments.splice(index, 1);
+        return { ...prev };
+      });
+    } catch (err) {
+      console.log(err);
+    }
+    setDisableBtn(false);
   }
 
   return (
@@ -260,6 +401,7 @@ export default function MusicPlayer() {
         </button>
         <button
           className="p-3 bg-black/50 rounded-full hover:bg-black/70"
+          disabled={disableBtn}
           onClick={(e) => {
             currentAudio.audio?.isLiked ? toggleUnLike(e) : toggleLike(e);
           }}
@@ -312,27 +454,124 @@ export default function MusicPlayer() {
         <button
           className="mt-2 bg-slate-700 text-white px-4 py-2 rounded"
           onClick={handleAddComment}
+          disabled={!newComment.trim() || disableBtn}
         >
           Add Comment
         </button>
-        <div className="mt-4">
-          {currentAudio.audio?.comments.map((comment, index) => (
-            <div key={index} className="flex items-center w-full mt-4">
-              <img
-                src={comment.owner._id == currentUser._id ? currentUser.avatar : comment.owner.avatar}
-                alt="User Profile Pic"
-                className="w-10 h-10 rounded-full mr-4"
-              />
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-400">{comment.owner.username}</p>
-                <p className="text-sm text-white">{comment.content}</p>
-              </div>
-            </div>
-          ))}
+        {fullScreenLoading && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-400">Loading comments...</p>
+          </div>
+        )}
+
+        {!fullScreenLoading && (
+          <div className="mt-6 space-y-4">
+            {currentAudio.audio?.comments?.map((comment, index) => {
+              const isOwner = comment.ownerDetails._id === currentUser._id;
+              const isEditing = editingComment?.id === comment._id;
+
+              return (
+                <div
+                  key={index}
+                  className="flex flex-col w-full p-3 bg-neutral-800/40 rounded-2xl shadow-sm hover:bg-neutral-800/60 transition"
+                >
+                  {/* Top Row: Avatar + Comment */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start">
+                      <img
+                        src={
+                          isOwner ? currentUser.avatar : comment.ownerDetails.avatar
+                        }
+                        alt="User Profile Pic"
+                        className="w-10 h-10 rounded-full object-cover mr-3 cursor-pointer"
+                        onClick={() =>
+                          handleCommentUserSelect(comment.ownerDetails.username)
+                        }
+                      />
+                      <div className="flex flex-col">
+                        <p className="text-xs font-medium text-gray-400 text-start">
+                          {comment.ownerDetails.username}
+                        </p>
+                        {isEditing ? (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={editingComment.text}
+                              onChange={(e) =>
+                                setEditingComment({ ...editingComment, text: e.target.value })
+                              }
+                              className="bg-transparent border-b border-gray-500 text-sm text-white focus:outline-none focus:border-white"
+                            />
+                            <button
+                              onClick={() => handleSaveEdit(comment._id, index, editingComment.text)}
+                              className="text-green-400 hover:text-green-500"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button
+                              onClick={() => setEditingComment(null)}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-white leading-snug">
+                            {comment.content}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Like Section */}
+                    <div className="flex items-center space-x-1">
+                      <button
+                        className="flex items-center justify-center hover:scale-110 transition-transform"
+                        disabled={disableBtn}
+                        onClick={() =>
+                          comment.hasLiked
+                            ? toggleCommentUnLike(comment, index)
+                            : toggleCommentLike(comment, index)
+                        }
+                      >
+                        {comment.hasLiked ? (
+                          <HeartOff size={18} className="text-gray-400 hover:text-white" />
+                        ) : (
+                          <Heart size={18} className="text-red-500" />
+                        )}
+                      </button>
+                      <Likes likes={comment.likesCount ? comment.likesCount : 0} />
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Edit/Delete (only for owner) */}
+                  {isOwner && !isEditing && (
+                    <div className="flex justify-end mt-2 space-x-3">
+                      <button
+                        onClick={() =>
+                          setEditingComment({ id: comment._id, text: comment.content })
+                        }
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="text-gray-400 hover:text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         </div>
-      </div>
-    )}
-  </div>
+      )}
+    </div>
   </div>
 </div>
   );

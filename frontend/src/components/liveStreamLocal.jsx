@@ -7,6 +7,7 @@ import Likes from "./likeFormatter.jsx";
 import Like from '../assets/like.png'
 import unLike from '../assets/unlike.png'
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 
 const LiveStream = () => {
   const { currentLiveStream, currentUser, setCurrentLiveStream, setCollectUser } = useContext(Authcontext);
@@ -56,7 +57,7 @@ const LiveStream = () => {
     try {
       const res = await axiosInstance.delete(
         `/like/toggleDislike`,
-        { params: { streamId: currentLiveStream._id, likedBy: currentUser._id } }
+        { data: { streamId: currentLiveStream._id, likedBy: currentUser._id } }
       );
       setCurrentLiveStream((prev) => {
         prev.isLiked = false;
@@ -216,96 +217,105 @@ const LiveStream = () => {
   };  
 
   return (
-<div className="fixed top-20 right-5 w-80 bg-gray-900 text-white shadow-xl rounded-lg p-4 border border-gray-700 z-50">
-  {/* Thumbnail Section */}
-  <div className="relative w-full h-44">
-    <img
-      src={currentLiveStream?.thumbnail || "https://via.placeholder.com/300"}
-      alt="Stream Thumbnail"
-      className="w-full h-full object-cover rounded-lg"
-    />
-    {isLive && (
-      <div className="absolute top-2 left-2 flex items-center bg-red-600 text-white text-xs px-2 py-1 rounded-md">
-        <span className="animate-pulse w-2 h-2 rounded-full bg-white mr-2"></span> LIVE
+    <div className="fixed top-20 right-5 w-80 bg-gray-900 text-white shadow-xl rounded-lg p-4 border border-gray-700 z-50">
+      
+      {/* Close Button */}
+      <button
+        onClick={() => setCurrentLiveStream(null)}
+        className="absolute top-2 right-2 text-gray-400 hover:text-white transition"
+      >
+        <X size={18} />
+      </button>
+
+      {/* Thumbnail Section */}
+      <div className="relative w-full h-44">
+        <img
+          src={currentLiveStream?.thumbnail || "https://via.placeholder.com/300"}
+          alt="Stream Thumbnail"
+          className="w-full h-full object-cover rounded-lg mt-3"
+        />
+        {isLive && (
+          <div className="absolute top-2 left-2 flex items-center bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+            <span className="animate-pulse w-2 h-2 rounded-full bg-white mr-2"></span> LIVE
+          </div>
+        )}
       </div>
-    )}
-  </div>
 
-  {/* Stream Info */}
-  <div className="mt-4">
-    <h4 className="text-lg font-semibold">{currentLiveStream?.title || "Stream Title"}</h4>
-    <p className="text-sm text-gray-400">{currentLiveStream?.description || "Stream Description"}</p>
-    
-    <p
-      className="text-sm text-gray-300 mt-2 cursor-pointer hover:text-white"
-      onClick={handleUserSelect}
-    >
-      {currentLiveStream?.ownerInfo[0]?.fullName || "Artist"}
-    </p>
-  </div>
+      {/* Stream Info */}
+      <div className="mt-4">
+        <h4 className="text-lg font-semibold">{currentLiveStream?.title || "Stream Title"}</h4>
+        <p className="text-sm text-gray-400">{currentLiveStream?.description || "Stream Description"}</p>
+        
+        <p
+          className="text-sm text-gray-300 mt-2 cursor-pointer hover:text-white"
+          onClick={handleUserSelect}
+        >
+          {currentLiveStream?.ownerInfo[0]?.fullName || "Artist"}
+        </p>
+      </div>
 
-  {/* Like & Audio Controls */}
-  <div className="mt-4 flex items-center justify-between">
-    <audio ref={localAudioRef} autoPlay muted className="hidden" />
-    <button
-      className="flex items-center bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-700"
-      onClick={(e) => { currentLiveStream?.isLiked ? toggleUnLike(e) : toggleLike(e) }}
-    >
-      <img
-        src={currentLiveStream?.isLiked ? Like : unLike}
-        alt="Like"
-        className="h-5 mr-2"
-      />
-      <Likes likes={currentLiveStream?.likeCount} />
-    </button>
-  </div>
+      {/* Like & Audio Controls */}
+      <div className="mt-4 flex items-center justify-between">
+        <audio ref={localAudioRef} autoPlay muted className="hidden" />
+        <button
+          className="flex items-center bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-700"
+          onClick={(e) => { currentLiveStream?.isLiked ? toggleUnLike(e) : toggleLike(e) }}
+        >
+          <img
+            src={currentLiveStream?.isLiked ? Like : unLike}
+            alt="Like"
+            className="h-5 mr-2"
+          />
+          <Likes likes={currentLiveStream?.likeCount} />
+        </button>
+      </div>
 
-  {/* Start/Stop Stream Buttons */}
-  <div className="mt-4">
-    {!isLive ? (
-      <button
-        className="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
-        onClick={startStream}
-      >
-        Start Live
-      </button>
-    ) : (
-      <button
-        className="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700"
-        onClick={() => setIsStopConfirmOpen(true)}
-      >
-        Stop Live
-      </button>
-    )}
-  </div>
-
-  {/* Stop Confirmation Popup */}
-  {isStopConfirmOpen && (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-80">
-        <h3 className="text-lg font-semibold mb-4">Stop Stream?</h3>
-        <p className="text-sm mb-6">Are you sure you want to stop the live stream? This action cannot be undone.</p>
-        <div className="flex justify-end space-x-4">
+      {/* Start/Stop Stream Buttons */}
+      <div className="mt-4">
+        {!isLive ? (
           <button
-            className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600"
-            onClick={() => setIsStopConfirmOpen(false)}
+            className="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
+            onClick={startStream}
           >
-            Cancel
+            Start Live
           </button>
+        ) : (
           <button
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            onClick={() => {
-              stopStream();
-              setIsStopConfirmOpen(false);
-            }}
+            className="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700"
+            onClick={() => setIsStopConfirmOpen(true)}
           >
-            Stop Stream
+            Stop Live
           </button>
+        )}
+      </div>
+
+      {/* Stop Confirmation Popup */}
+      {isStopConfirmOpen && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-80">
+            <h3 className="text-lg font-semibold mb-4">Stop Stream?</h3>
+            <p className="text-sm mb-6">Are you sure you want to stop the live stream? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600"
+                onClick={() => setIsStopConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                onClick={() => {
+                  stopStream();
+                  setIsStopConfirmOpen(false);
+                }}
+              >
+                Stop Stream
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
-  )}
-</div>
   );
 };
 

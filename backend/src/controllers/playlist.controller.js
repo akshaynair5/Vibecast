@@ -176,7 +176,7 @@ const removeVideoFromPlayList = asyncHandler(async (req,res)=>{
         {
             new: true  // Returns the updated playlist after the removal
         }
-    );     
+    );
 
     if(!playList){
         throw new ApiError(500,"Video could not be removed from playlist")

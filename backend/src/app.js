@@ -5,9 +5,9 @@ import cookieParser from "cookie-parser";
 const app = express()
 
 app.use(express.json({limit:'16kb'}))
-app.use(urlencoded({limit:'16kb',extended:true}))
+app.use(urlencoded({limit:'16kb',extended:true}))  // This is used to parse the request body from a form submission, 'extended' is for better representation of data.
 app.use(cookieParser())                     // This basically allows us to access the JWT Tokens through the requests of the user. 
-app.use(express.static('public'))
+app.use(express.static('public'))    // so that we can serve static files like images, css, js, etc. eg - localhost:3000/images/logo.png will get the image file...
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true

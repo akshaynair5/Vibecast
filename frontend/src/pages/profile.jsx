@@ -10,6 +10,7 @@ import AudioCard from '../components/audioCard';
 import StreamCard from '../components/liveAudioCard';
 import Select from "react-select";
 import { Mic, PlusCircle, XCircle, Upload } from "lucide-react";
+import Subscribers from '../components/subscriberFormatter';
 
 function Profile() {
     const {currentUser, setCurrentUser, currentAudio, setCurrentLiveStream} = useContext(Authcontext)
@@ -429,8 +430,13 @@ function Profile() {
         </div>
 
         {/* User Info */}
+
         <div className="flex flex-col items-center text-center space-y-3 p-4 bg-transparent rounded-xl w-full sm:w-[80%] mx-auto">
           <h2 className="text-2xl font-semibold text-white">{currentUser.fullName}</h2>
+
+          {/* Subscriber count */}
+          <Subscribers subscribers={currentUser.subscribersCount} />
+
           <p className="text-sm text-gray-400">Description or bio about the user goes here.</p>
 
           <div className="flex gap-3">
@@ -448,6 +454,7 @@ function Profile() {
               <Mic size={18} /> Start Live Podcast
             </button>
           </div>
+
 
           {isOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">

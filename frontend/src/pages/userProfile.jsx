@@ -8,6 +8,7 @@ import MusicPlayer from '../components/currentPlayer';
 import { Authcontext } from '../contextProvider';
 import AudioCard from '../components/audioCard';
 import StreamCard from '../components/liveAudioCard';
+import Subscribers from '../components/subscriberFormatter';
 
 function UserProfile() {
     const {currentUser, setCurrentUser, currentAudio, collectUser} = useContext(Authcontext)
@@ -33,7 +34,6 @@ function UserProfile() {
 
     useEffect(()=>{
        const fetchUserProfileData = async ()=>{
-            console.log(collectUser)
             try{
                 const result = await axiosInstance.get(`/users/c/${collectUser.username}`)
                 console.log(result.data)
@@ -115,7 +115,8 @@ function UserProfile() {
         </div>
 
         <div className="flex flex-col items-center text-center space-y-3 p-4 bg-transparent rounded-xl w-full sm:w-[80%] mx-auto">
-          <h2 className="text-2xl font-semibold text-white">{currentUser.fullName}</h2>
+          <h2 className="text-2xl font-semibold text-white">{userProfileData.fullName}</h2>
+          <Subscribers subscribers={userProfileData.subscribersCount} />
           <p className="text-sm text-gray-400">Description or bio about the user goes here.</p>
 
           <div className="flex gap-3">
@@ -123,7 +124,7 @@ function UserProfile() {
                   className="flex items-center gap-2 bg-gray-800 text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-700 transition"
                   onClick={userProfileData?.isSubscribed? handleUnSubscription : handleSubscription}
               >
-                  {userProfileData?.isSubscribed? "Subscribed" : "Subscribe"}
+                  {userProfileData?.isSubscribed? "Unsubscribe" : "Subscribe"}
             </button>
           </div>
         </div>

@@ -145,14 +145,14 @@ const getVideoById = asyncHandler(async (req, res) => {
                 as: "ownerInfo",
             },
         },
-        {
-            $lookup: {
-                from: "comments",
-                localField: "_id",
-                foreignField: "video",
-                as: "comments",
-            },
-        },
+        // {
+        //     $lookup: {
+        //         from: "comments",
+        //         localField: "_id",
+        //         foreignField: "video",
+        //         as: "comments",
+        //     },
+        // },
         {
             $lookup: {
                 from: "likes",
@@ -170,77 +170,77 @@ const getVideoById = asyncHandler(async (req, res) => {
                 as: "commentOwners",
             },
         },
-        {
-            $addFields: {
-                comments: {
-                    $map: {
-                        input: "$comments",
-                        as: "comment",
-                        in: {
-                            _id: "$$comment._id",
-                            content: "$$comment.content",
-                            createdAt: "$$comment.createdAt",
-                            owner: {
-                                _id: {
-                                    $arrayElemAt: [
-                                        {
-                                            $map: {
-                                                input: {
-                                                    $filter: {
-                                                        input: "$commentOwners",
-                                                        as: "owner",
-                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-                                                    },
-                                                },
-                                                as: "matchedOwner",
-                                                in: "$$matchedOwner._id",
-                                            },
-                                        },
-                                        0,
-                                    ],
-                                },
-                                username: {
-                                    $arrayElemAt: [
-                                        {
-                                            $map: {
-                                                input: {
-                                                    $filter: {
-                                                        input: "$commentOwners",
-                                                        as: "owner",
-                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-                                                    },
-                                                },
-                                                as: "matchedOwner",
-                                                in: "$$matchedOwner.username",
-                                            },
-                                        },
-                                        0,
-                                    ],
-                                },
-                                avatar: {
-                                    $arrayElemAt: [
-                                        {
-                                            $map: {
-                                                input: {
-                                                    $filter: {
-                                                        input: "$commentOwners",
-                                                        as: "owner",
-                                                        cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-                                                    },
-                                                },
-                                                as: "matchedOwner",
-                                                in: "$$matchedOwner.avatar",
-                                            },
-                                        },
-                                        0,
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
+        // {
+        //     $addFields: {
+        //         comments: {
+        //             $map: {
+        //                 input: "$comments",
+        //                 as: "comment",
+        //                 in: {
+        //                     _id: "$$comment._id",
+        //                     content: "$$comment.content",
+        //                     createdAt: "$$comment.createdAt",
+        //                     owner: {
+        //                         _id: {
+        //                             $arrayElemAt: [
+        //                                 {
+        //                                     $map: {
+        //                                         input: {
+        //                                             $filter: {
+        //                                                 input: "$commentOwners",
+        //                                                 as: "owner",
+        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+        //                                             },
+        //                                         },
+        //                                         as: "matchedOwner",
+        //                                         in: "$$matchedOwner._id",
+        //                                     },
+        //                                 },
+        //                                 0,
+        //                             ],
+        //                         },
+        //                         username: {
+        //                             $arrayElemAt: [
+        //                                 {
+        //                                     $map: {
+        //                                         input: {
+        //                                             $filter: {
+        //                                                 input: "$commentOwners",
+        //                                                 as: "owner",
+        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+        //                                             },
+        //                                         },
+        //                                         as: "matchedOwner",
+        //                                         in: "$$matchedOwner.username",
+        //                                     },
+        //                                 },
+        //                                 0,
+        //                             ],
+        //                         },
+        //                         avatar: {
+        //                             $arrayElemAt: [
+        //                                 {
+        //                                     $map: {
+        //                                         input: {
+        //                                             $filter: {
+        //                                                 input: "$commentOwners",
+        //                                                 as: "owner",
+        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
+        //                                             },
+        //                                         },
+        //                                         as: "matchedOwner",
+        //                                         in: "$$matchedOwner.avatar",
+        //                                     },
+        //                                 },
+        //                                 0,
+        //                             ],
+        //                         },
+        //                     },
+        //                 },
+        //             },
+        //         },
+        //     },
+        // },
         {
             $addFields: {
                 isLiked: {

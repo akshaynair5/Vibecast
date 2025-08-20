@@ -40,8 +40,6 @@ const videoSchema = new mongoose.Schema({
         ref:"User",
         required:true,
     }
-    
-    
 })
 
 videoSchema.plugin(mongooseAgregatePaginate);    // This is a middleware that enables aggregation functions
