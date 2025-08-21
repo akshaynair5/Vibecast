@@ -7,6 +7,7 @@ import { set } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import rightArrow from "../assets/right-arrow.svg";
 import leftArrow from "../assets/left-arrow.svg";
+import NewPlaylistModal from "./newPlaylistModal";
 
 export default function Sidebar() {
   const {currentUser, setCollectUser} = useContext(Authcontext);
@@ -18,6 +19,7 @@ export default function Sidebar() {
   const [playlists, setPlaylists] = useState([]);
   const [content, setContent] = useState([]);
   const [currentPlaylist, setCurrentPlaylist] = useState(null);
+  const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
   const navigate = useNavigate();
   const windowWidth = window.innerWidth;
 
@@ -193,11 +195,11 @@ export default function Sidebar() {
   
   return (
     <>
-      {windowWidth > 768 && (
+      {
         <div className="flex">
           {/* Sidebar */}
           <div
-            className={`fixed top-[10%] left-[1%] z-10 h-[calc(100vh-6rem)] bg-[#212529] text-white shadow-md rounded-tr-md rounded-br-md transform ${
+            className={`fixed ${windowWidth >= 768 ? "top-[10vh]" : "top-[4rem]"} left-0 z-10 w-[250px] h-full bg-gray-900 text-white shadow-md rounded-tr-md rounded-br-md transform ${'top-[10%]'} left-[1%] z-10 h-[calc(100vh-6rem)] bg-[#212529] text-white shadow-md rounded-tr-md rounded-br-md transform ${
               isOpen ? "translate-x-0" : "-translate-x-full"
             } transition-transform duration-300 rounded-md`}
             style={{ 
@@ -235,19 +237,22 @@ export default function Sidebar() {
 
           {/* Toggle Button */}
           <button
-            className={`fixed top-[10%] left-[-20%] z-20 bg-white text-white font-extrabold p-2 shadow-md focus:outline-none ${
-              isOpen ? "translate-x-[250px]" : "translate-x-0"
-            } transition-transform duration-300 rounded-tr-lg rounded-br-lg min-w-[365px] flex flex-row-reverse`}
+            className={`fixed ${
+              windowWidth >= 768 ? "top-[10vh] left-[-19vw]" : "top-[4.5rem] left-[-19.7rem]"
+            } z-20 bg-white text-white font-extrabold p-2 shadow-md focus:outline-none ${
+              isOpen ? "translate-x-[15rem]" : "translate-x-0"
+            } transition-transform duration-300 rounded-tr-lg rounded-br-lg min-w-[22rem] flex flex-row-reverse`}
             onClick={() => setIsOpen(!isOpen)}
           >
             <img
               src={isOpen ? leftArrow : rightArrow}
               alt="Toggle Icon"
-              className="w-6 h-6" // You can adjust the size here
+              className="w-6 h-6"
             />
           </button>
+
         </div>
-      )}
+      }
 
       {/* Modal */}
       {isModalOpen && (
@@ -274,14 +279,28 @@ export default function Sidebar() {
                     </h3>
                     <button
                     onClick={() => setIsModalOpen(false)}
-                    className="text-red-500 hover:underline"
+                    className="text-red-500 hover:"
                     >
                     Close
                     </button>
                 </div>
                 <div className="modal-body">
-                {modalContent === "playlists" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none">
+                    {modalContent === "playlists" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none"
+                              style={{
+                              maxHeight: "70vh",
+                              overflowY: "auto",
+                            }}
+                      >
+                          {/* Create New Playlist Card */}
+                          <div>
+                            <button
+                              className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-md text-gray-400 hover:text-white hover:border-white transition-colors"
+                              onClick={() => setShowNewPlaylistModal(true)}
+                            >
+                              + Create New Playlist
+                            </button>
+                          </div>
                         {playlists.map((playlist) => {
                           const isOptionsOpen = modals.options === playlist._id;
                           const isUpdateOpen = modals.update === playlist._id;
@@ -291,48 +310,57 @@ export default function Sidebar() {
                             <div key={playlist._id}>
                               {/* Options Button */}
                               <button
-                                className="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400 mb-2"
+                                className="w-full bg-gray-800 text-white py-2 mb-2 rounded-md hover:bg-gray-700 transition-colors flex justify-center items-center font-semibold"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openModal("options", playlist._id);
                                 }}
                               >
-                                ...
+                                Playlist Options
                               </button>
 
                               {/* Options Modal */}
                               {isOptionsOpen && (
-                                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
-                                  <div className="bg-white p-4 rounded-lg shadow-lg">
-                                    <button
-                                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mb-2 w-full"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        closeModal("options");
-                                        openModal("update", playlist._id);
-                                      }}
-                                    >
-                                      Update
-                                    </button>
-                                    <button
-                                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-full"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        closeModal("options");
-                                        openModal("delete", playlist._id);
-                                      }}
-                                    >
-                                      Delete
-                                    </button>
-                                    <button
-                                      className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400 mt-2 w-full"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        closeModal("options"); // Close options modal
-                                      }}
-                                    >
-                                      Cancel
-                                    </button>
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                                  <div
+                                    className="rounded-lg shadow-lg w-11/12 md:w-1/3 p-4 max-h-[60vh] overflow-y-auto scrollbar-none"
+                                    style={{
+                                      backgroundImage:
+                                        "linear-gradient(to right bottom, #242424, #1d1d1d, #161616, #0d0d0d)",
+                                    }}
+                                  >
+                                    <h4 className="text-lg font-semibold text-white mb-4">Playlist Options</h4>
+                                    <div className="flex flex-col space-y-2">
+                                      <button
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          closeModal("options");
+                                          openModal("update", playlist._id);
+                                        }}
+                                      >
+                                        Update
+                                      </button>
+                                      <button
+                                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          closeModal("options");
+                                          openModal("delete", playlist._id);
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                      <button
+                                        className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          closeModal("options");
+                                        }}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -428,7 +456,12 @@ export default function Sidebar() {
                     )}
 
                     {modalContent === "Audios" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none"
+                          style={{
+                              maxHeight: "70vh",
+                              overflowY: "auto",
+                            }}
+                      >
                         {content.map((audio, index) => {
                           const isOptionsOpen = audioModals.options === index;
                           const isDeleteOpen = audioModals.delete === index;
@@ -518,7 +551,12 @@ export default function Sidebar() {
                     )}
 
                     {modalContent === "Channels" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none"
+                              style={{
+                              maxHeight: "70vh",
+                              overflowY: "auto",
+                            }}
+                    >
                         {content.map((channel, index) => (
                           <div
                             key={index}
@@ -542,6 +580,16 @@ export default function Sidebar() {
                         ))}
                     </div>
                     )}
+
+                  {showNewPlaylistModal && (
+                    <NewPlaylistModal
+                      onClose={() => setShowNewPlaylistModal(false)}
+                      onAddNewPlaylist={(newPlaylist) => {
+                        setPlaylists([...playlists, newPlaylist]);
+                        setShowNewPlaylistModal(false);
+                      }}
+                    />
+                  )}
                 </div>
             </div>
         </div>

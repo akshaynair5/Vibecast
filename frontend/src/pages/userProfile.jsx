@@ -9,71 +9,81 @@ import { Authcontext } from '../contextProvider';
 import AudioCard from '../components/audioCard';
 import StreamCard from '../components/liveAudioCard';
 import Subscribers from '../components/subscriberFormatter';
+import { useParams } from 'react-router-dom';
 
 function UserProfile() {
-    const {currentUser, setCurrentUser, currentAudio, collectUser} = useContext(Authcontext)
-    const [userAudioData, setUserAudioData] = useState([]);
-    const [userProfileData, setUserProfileData] = useState([]);
-    const [liveStreams, setLiveStreams] = useState([]);
-    const [isMobile, setIsMobile] = useState(false);
+  const { currentUser, setCurrentUser, currentAudio, collectUser } = useContext(Authcontext);
+  const { username } = useParams(); // 👈 get username from URL params
+  const [userAudioData, setUserAudioData] = useState([]);
+  const [userProfileData, setUserProfileData] = useState({});
+  const [liveStreams, setLiveStreams] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(() => {
-      const checkScreenSize = () => {
-        if (window.innerWidth <= 768) {
-          setIsMobile(true);
-        } else {
-          setIsMobile(false);
-        }
-      };
-    
-      window.addEventListener('resize', checkScreenSize);
-      checkScreenSize(); // Check screen size on initial load
-    
-      return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
 
-    useEffect(()=>{
-       const fetchUserProfileData = async ()=>{
-            try{
-                const result = await axiosInstance.get(`/users/c/${collectUser.username}`)
-                console.log(result.data)
-                setUserProfileData(result.data.message[0]);
-                setUserAudioData(result.data.message[0].videos);
-                setLiveStreams(result.data.message[0].liveStreams);
-            }
-            catch(err){
-                console.log(err)
-            }
-        }
-        fetchUserProfileData();
-    },[])
+    window.addEventListener("resize", checkScreenSize);
+    checkScreenSize();
 
-    useEffect(()=>{
-        console.log(userProfileData)
-    },[userProfileData])
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
-    const handleSubscription = async () => {
-        try{
-            const res = await axiosInstance.post(`/subscriptions/c/${collectUser._id}`);
-            console.log(res.data);
-            setUserProfileData(prevState => ({...prevState, isSubscribed: true, subscribersCount: prevState.subscribersCount + 1}));
-        }
-        catch(err){
-            console.log(err)
-        }
+  useEffect(() => {
+    const fetchUserProfileData = async () => {
+      try {
+        // ✅ Use collectUser if available, else fallback to username from URL
+        const targetUsername = collectUser?.username || username;
+
+        if (!targetUsername) return;
+
+        const result = await axiosInstance.get(`/users/c/${targetUsername}`);
+        console.log(result.data);
+
+        const profile = result.data.message[0];
+        setUserProfileData(profile);
+        setUserAudioData(profile.videos || []);
+        setLiveStreams(profile.liveStreams || []);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchUserProfileData();
+  }, [collectUser, username]);
+
+  useEffect(() => {
+    console.log(userProfileData);
+  }, [userProfileData]);
+
+  const handleSubscription = async () => {
+    try {
+      const res = await axiosInstance.post(`/subscriptions/c/${collectUser?._id || userProfileData._id}`);
+      console.log(res.data);
+      setUserProfileData((prevState) => ({
+        ...prevState,
+        isSubscribed: true,
+        subscribersCount: prevState.subscribersCount + 1,
+      }));
+    } catch (err) {
+      console.log(err);
     }
+  };
 
-    const handleUnSubscription = async () => {
-        try{
-            const res = await axiosInstance.delete(`/subscriptions/c/${collectUser._id}`);
-            console.log(res.data);
-            setUserProfileData(prevState => ({...prevState, isSubscribed: false, subscribersCount: prevState.subscribersCount - 1}));
-        }
-        catch(err){
-            console.log(err)
-        }
+  const handleUnSubscription = async () => {
+    try {
+      const res = await axiosInstance.delete(`/subscriptions/c/${collectUser?._id || userProfileData._id}`);
+      console.log(res.data);
+      setUserProfileData((prevState) => ({
+        ...prevState,
+        isSubscribed: false,
+        subscribersCount: prevState.subscribersCount - 1,
+      }));
+    } catch (err) {
+      console.log(err);
     }
-
+  };
   return (
     <div className='fixed top-0 left-0 w-screen h-screen overflow-y-scroll scrollbar-thin scrollbar-thumb-scrollbar scrollbar-track-transparent z-10'
       style={{

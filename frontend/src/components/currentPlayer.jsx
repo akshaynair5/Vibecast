@@ -8,6 +8,7 @@ import { set } from "date-fns";
 import PlaylistModal from "./playlistComponent";
 import { useNavigate } from "react-router-dom";
 import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X, Trash2, Check, Edit3 } from "lucide-react"
+import AddToPlaylistModal from "./addToPlaylistModal";
 
 export default function MusicPlayer() {
   const { currentAudio, setCurrentAudio, audioElement, currentUser, setCollectUser, collectUser} = useContext(Authcontext);
@@ -22,6 +23,7 @@ export default function MusicPlayer() {
   const [disableBtn, setDisableBtn] = useState(false);
   const [editingComment, setEditingComment] = useState(null);
   const navigate = useNavigate();
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const togglePlayPause = () => {
     setPlay((prev) => {
@@ -318,10 +320,10 @@ export default function MusicPlayer() {
     <div
   className={`fixed text-white transition-all duration-300 shadow-lg rounded-lg z-[1000] backdrop-blur-lg bg-opacity-10 ${
     isFullscreen
-      ? "w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0"
+      ? `w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0`
       : isExpanded
-      ? "w-1/3 h-4/5 rounded-lg p-4 bottom-0 top-[12vh] left-[65vw] flex flex-col"
-      : "w-1/5 h-25 flex items-center p-4 left-[75vw] bottom-4"
+      ? `${windowWidth >= 768 ? 'w-1/3 left-[65vw] h-4/5' : 'w-[95%] left-[2.5%] h-4/5'} rounded-lg p-4 bottom-0 top-[12vh] flex flex-col`
+      : `${windowWidth >= 768 ? 'w-1/5 left-[75vw] h-25' : 'w-[95%] left-[2.5%] h-15'} flex items-center p-4 bottom-4`
   }`}
   onClick={!isExpanded ? toggleExpand : null}
 >
@@ -360,13 +362,13 @@ export default function MusicPlayer() {
   {/* Content */}
   <div
     className={`flex ${
-      isFullscreen ? "flex-row w-full h-full" : "flex-col w-full h-full"
+      isFullscreen ? `${windowWidth >= 768 ? 'flex-row' : 'flex-col'} w-full h-full` : "flex-col w-full h-full"
     }`}
   >
     {/* Audio Info (Left Side in Fullscreen, Centered in Expanded Mode) */}
     <div
       className={`flex flex-col items-center ${
-        isFullscreen ? "w-1/2 h-full" : "w-full"
+        isFullscreen ? `${windowWidth >= 768 ? 'w-1/2' : 'w-full'} h-full` : "w-full"
       }`}
     >
       <img
@@ -412,6 +414,11 @@ export default function MusicPlayer() {
             <HeartOff size={20} />
           )}
         </button>
+        <AddToPlaylistModal
+          isOpen={isPlaylistModalOpen}
+          onClose={() => setIsPlaylistModalOpen(false)}
+          musicId={currentAudio.audio._id}
+        />
         <button
           className="p-3 bg-black/50 rounded-full hover:bg-black/70"
           onClick={openPlaylistModal}
@@ -444,7 +451,7 @@ export default function MusicPlayer() {
 
     {/* Comments (Right Side in Fullscreen Mode) */}
     {isFullscreen && (
-      <div className="flex flex-col w-1/2 h-full overflow-y-auto p-4">
+      <div className={`flex flex-col ${windowWidth >= 768 ? 'w-1/2' : 'w-full'} h-full overflow-y-scroll p-4`}>
         <textarea
           className="w-full p-2 border rounded bg-gray-800 text-white"
           placeholder="Add a comment..."
@@ -473,60 +480,63 @@ export default function MusicPlayer() {
               return (
                 <div
                   key={index}
-                  className="flex flex-col w-full p-3 bg-neutral-800/40 rounded-2xl shadow-sm hover:bg-neutral-800/60 transition"
+                  className="flex flex-col w-full p-4 bg-neutral-800/40 rounded-2xl shadow-sm hover:bg-neutral-800/60 transition"
                 >
-                  {/* Top Row: Avatar + Comment */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start">
-                      <img
-                        src={
-                          isOwner ? currentUser.avatar : comment.ownerDetails.avatar
-                        }
-                        alt="User Profile Pic"
-                        className="w-10 h-10 rounded-full object-cover mr-3 cursor-pointer"
-                        onClick={() =>
-                          handleCommentUserSelect(comment.ownerDetails.username)
-                        }
-                      />
-                      <div className="flex flex-col">
-                        <p className="text-xs font-medium text-gray-400 text-start">
-                          {comment.ownerDetails.username}
-                        </p>
-                        {isEditing ? (
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="text"
-                              value={editingComment.text}
-                              onChange={(e) =>
-                                setEditingComment({ ...editingComment, text: e.target.value })
-                              }
-                              className="bg-transparent border-b border-gray-500 text-sm text-white focus:outline-none focus:border-white"
-                            />
-                            <button
-                              onClick={() => handleSaveEdit(comment._id, index, editingComment.text)}
-                              className="text-green-400 hover:text-green-500"
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button
-                              onClick={() => setEditingComment(null)}
-                              className="text-red-500 hover:text-red-600"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-white leading-snug">
-                            {comment.content}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                  {/* Row 1: Avatar + Username */}
+                  <div className="flex items-center mb-2">
+                    <img
+                      src={isOwner ? currentUser.avatar : comment.ownerDetails.avatar}
+                      alt="User Profile Pic"
+                      className="w-9 h-9 rounded-full object-cover mr-3 cursor-pointer"
+                      onClick={() =>
+                        handleCommentUserSelect(comment.ownerDetails.username)
+                      }
+                    />
+                    <p className="text-sm font-medium text-gray-300">
+                      {comment.ownerDetails.username}
+                    </p>
+                  </div>
 
-                    {/* Like Section */}
+                  {/* Row 2: Content or Edit Mode */}
+                  <div className="flex items-center justify-between">
+                    {isEditing ? (
+                      <div className="flex items-center flex-1 space-x-2">
+                        <input
+                          type="text"
+                          value={editingComment.text}
+                          onChange={(e) =>
+                            setEditingComment({ ...editingComment, text: e.target.value })
+                          }
+                          className="flex-1 bg-transparent border-b border-gray-500 text-sm text-white focus:outline-none focus:border-white"
+                        />
+                        <button
+                          onClick={() =>
+                            handleSaveEdit(comment._id, index, editingComment.text)
+                          }
+                          className="text-green-400 hover:text-green-500"
+                        >
+                          <Check size={18} />
+                        </button>
+                        <button
+                          onClick={() => setEditingComment(null)}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-white leading-snug flex-1 text-start">
+                        {comment.content}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Row 3: Actions */}
+                  <div className="flex items-center justify-end mt-3 space-x-4 text-gray-400">
+                    {/* Like Button + Count */}
                     <div className="flex items-center space-x-1">
                       <button
-                        className="flex items-center justify-center hover:scale-110 transition-transform"
+                        className="hover:scale-110 transition-transform"
                         disabled={disableBtn}
                         onClick={() =>
                           comment.hasLiked
@@ -542,32 +552,33 @@ export default function MusicPlayer() {
                       </button>
                       <Likes likes={comment.likesCount ? comment.likesCount : 0} />
                     </div>
-                  </div>
 
-                  {/* Bottom Row: Edit/Delete (only for owner) */}
-                  {isOwner && !isEditing && (
-                    <div className="flex justify-end mt-2 space-x-3">
-                      <button
-                        onClick={() =>
-                          setEditingComment({ id: comment._id, text: comment.content })
-                        }
-                        className="text-gray-400 hover:text-white"
-                      >
-                        <Edit3 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteComment(comment._id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  )}
+                    {/* Edit/Delete for Owner */}
+                    {isOwner && !isEditing && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setEditingComment({ id: comment._id, text: comment.content })
+                          }
+                          className="hover:text-white"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="hover:text-red-500"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
+
 
         </div>
       )}

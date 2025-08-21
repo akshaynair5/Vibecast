@@ -246,9 +246,9 @@ const getUserPlaylists = asyncHandler(async (req,res)=>{
     ]);
     
 
-    if(playLists.length === 0){
-        throw new ApiError(404,"No playlists found for the user")
-    }
+    // if(playLists.length === 0){
+    //     throw new ApiError(404,"No playlists found for the user")
+    // }
 
     res.status(200).json(new ApiResponse(200,playLists,"Playlists fetched successfully"))
 

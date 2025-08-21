@@ -14,6 +14,7 @@ import Subscribers from '../components/subscriberFormatter';
 
 function Profile() {
     const {currentUser, setCurrentUser, currentAudio, setCurrentLiveStream} = useContext(Authcontext)
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [userAudioData, setUserAudioData] = useState([]);
     const [liveStreams, setLiveStreams] = useState([]);
     const [userProfileData, setUserProfileData] = useState([]);
@@ -416,11 +417,11 @@ function Profile() {
     </div>
 
       {/* User Info Section */}
-      <div className="max-w-7xl mx-auto px-4 py-8 bg-transparent text-white">
+    <div className="max-w-7xl mx-auto px-4 py-8 bg-transparent text-white">
       {/* Profile Section */}
       <div className="flex flex-col md:flex-row md:items-center md:space-x-8">
         {/* Profile Picture */}
-        <div className="flex-shrink-0 mb-4 md:mb-0">
+        <div className="flex justify-center md:justify-start w-full md:w-auto mb-4 md:mb-0">
           <img
             src={previewProfileImage}
             alt="Profile"
@@ -428,6 +429,7 @@ function Profile() {
             onClick={() => setIsModalOpen(true)} // Open modal on click
           />
         </div>
+
 
         {/* User Info */}
 

@@ -1,20 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 
-const Button1 = ({ content, activeSection, onClick, active }) => {
+const Button1 = ({ content, active, onClick }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   return (
     <button
-      className={`flex items-center justify-center text-sm px-[1px] py-[2px] rounded-3xl min-w-[5vw] transition-all duration-300 bg-gray-400 shadow-b-lg text-black ${
-        active ? "px-[1px] py-[2px]" : "px-[1px] py-[2px"
-      }`}
       onClick={onClick}
+      className={`text-[0.6rem] md:text-lg relative flex items-center justify-center text-sm font-medium rounded-full transition-all duration-300 shadow-sm
+        ${active 
+          ? "bg-gray-200 text-black px-5 py-2" 
+          : "bg-[#0a0908] text-white hover:bg-gray-800 px-5 py-2"}
+      `}
     >
-      <span
-        className={`rounded-3xl px-4 py-2 ${
-          active ? "" : "bg-[#0a0908] text-white"
-        } min-w-[98%]`}
-      >
-        {content}
-      </span>
+      {content}
     </button>
   );
 };

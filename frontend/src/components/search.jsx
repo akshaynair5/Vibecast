@@ -16,6 +16,7 @@ const SearchAudioComponent = () => {
   const [error, setError] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [view, setView] = useState('audios');
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const navigate = useNavigate();
 
@@ -108,7 +109,12 @@ const SearchAudioComponent = () => {
 
       {/* Results Dropdown */}
       {showPopup && (
-        <div className="absolute w-full bg-gray-900 text-white rounded-md mt-2 shadow-lg z-50 p-2 min-h-[64vh] overflow-y-auto border border-gray-700">
+        <div
+          className={`absolute ${
+            windowWidth > 768 ? "w-full" : "w-[80vw] left-[-3.2rem]"
+          } bg-gray-900 text-white rounded-md mt-2 shadow-lg z-50 p-2 
+          max-h-[70vh] overflow-y-auto border border-gray-700`}
+        >
           {/* Toggle Tabs */}
           <div className="flex justify-around py-2 bg-gray-800 border-b border-gray-700">
             <button
@@ -162,7 +168,7 @@ const SearchAudioComponent = () => {
 
           {/* Audio/Video Results */}
           {view === 'audios' && (
-            <div className="p-2 grid grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
+            <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
               {results.audios.length > 0 ? (
                 results.audios.map((audio) => <AudioCard key={audio._id} audio={audio} />)
               ) : (
@@ -173,7 +179,7 @@ const SearchAudioComponent = () => {
 
           {/* Streams Results */}
           {view === 'streams' && (
-            <div className="p-2 grid grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
+            <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-2 min-h-[100%] overflow-y-auto custom-scrollbar">
               {results.streams.length > 0 ? (
                 results.streams.map((stream) => <StreamCard key={stream._id} stream={stream} />)
               ) : (

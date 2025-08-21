@@ -48,42 +48,45 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
   };
 
   return (
-    <div className="bg-[#212529bc] p-4 rounded-lg shadow-md relative text-white flex flex-col justify-between min-w-[100%] max-w-[100%] max-h-[100%] mt-5">
-      {/* Play Button and Duration */}
-      <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 text-white text-sm px-2 py-1 rounded-md">
+    <div
+      className="bg-[#212529bc] p-4 rounded-lg shadow-md relative text-white flex flex-col justify-between
+        min-w-[80px] sm:min-w-[280px] md:min-w-[320px]
+        w-full max-w-[380px]
+        mt-5"
+    >
+      {/* Duration Badge */}
+      <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 text-white text-xs sm:text-sm px-2 py-0.5 sm:py-1 rounded-md">
         {durationInMinutes} min
       </div>
-      {/* <button
-        className="absolute top-2 right-2 bg-indigo-500 text-white rounded-full p-2 hover:bg-indigo-600"
-        onClick={onPlay}
-      >
-        ▶
-      </button> */}
 
-      {/* Image */}
+      {/* Thumbnail */}
       <img
-        src={`${audio.thumbnail}`}
+        src={audio.thumbnail}
         alt="Audio/Podcast"
-        className="w-full h-40 object-cover rounded-md cursor-pointer"
+        className="w-full h-[8rem] sm:h-[10rem] md:h-[12rem] object-cover rounded-md cursor-pointer"
         onClick={onPlay}
       />
 
-      {/* Title and Description */}
-      <h4 className="mt-2 text-lg font-semibold text-white-800 truncate">{truncateDescription(audio.title, 5)}</h4>
-      <p className="text-sm text-gray-300 truncate">
-        {truncateDescription(audio.description, 10)}
+      {/* Title */}
+      <h4 className="mt-2 text-base sm:text-lg font-semibold text-white line-clamp-1">
+        {audio.title}
+      </h4>
+
+      {/* Description */}
+      <p className="text-xs sm:text-sm text-gray-300 line-clamp-2">
+        {audio.description}
       </p>
 
       {/* Posted Date */}
-      <p className="text-xs text-gray-300 mt-1">
+      <p className="text-xs text-gray-400 mt-1">
         Posted on: {getFormattedCreationDate(audio)}
       </p>
 
       {/* Action Buttons */}
-      <div className="flex justify-between mt-4 space-x-2">
+      <div className="flex justify-between mt-3 space-x-2">
         {onUpdate && (
           <button
-            className="block w-full px-4 py-3 text-sm text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-all"
+            className="block w-full px-3 py-2 text-xs sm:text-sm text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-all"
             onClick={() => setShowUpdatePopup(true)}
           >
             Update
@@ -91,7 +94,7 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
         )}
         {onDelete && (
           <button
-            className="block w-full px-4 py-3 text-sm text-red-400 bg-gray-800 hover:bg-gray-700 rounded-md transition-all"
+            className="block w-full px-3 py-2 text-xs sm:text-sm text-red-400 bg-gray-800 hover:bg-gray-700 rounded-md transition-all"
             onClick={() => setShowDeletePopup(true)}
           >
             Delete
@@ -147,9 +150,9 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
             </div>
           </div>
         </div>
-        )}
+      )}
 
-        {showDeletePopup && (
+      {showDeletePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-gray-900 text-white rounded-lg p-6 max-w-md w-full shadow-lg">
             {/* Modal Header */}
@@ -185,7 +188,7 @@ const AudioCard = ({ audio, onUpdate, onDelete }) => {
             </div>
           </div>
         </div>
-        )}
+      )}
 
     </div>
   );
