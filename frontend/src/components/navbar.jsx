@@ -113,7 +113,7 @@ const Navbar = () => {
                       logout(currentUser);
                       closeDropdown();
                     }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-100 hover:bg-gray-800 rounded-md"
+                    className="block px-4 py-3 text-sm text-gray-100 hover:bg-gray-800 rounded-md text-center w-full"
                   >
                     Sign out
                   </button>

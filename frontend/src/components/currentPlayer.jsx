@@ -11,7 +11,7 @@ import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X, Trash2, Chec
 import AddToPlaylistModal from "./addToPlaylistModal";
 
 export default function MusicPlayer() {
-  const { currentAudio, setCurrentAudio, audioElement, currentUser, setCollectUser, collectUser} = useContext(Authcontext);
+  const { currentAudio, setCurrentAudio, audioElement, currentUser, setCollectUser, collectUser } = useContext(Authcontext);
   const [listenTime, setListenTime] = useState(0);
   const [play, setPlay] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -37,9 +37,10 @@ export default function MusicPlayer() {
     });
   };
 
+  // Debug
   useEffect(() => {
     console.log("Current Audio:", currentAudio);
-  }, [currentAudio])
+  }, [currentAudio]);
 
   const handleSliderChange = (e) => {
     const newTime = (e.target.value / 100) * audioElement?.duration;
@@ -48,29 +49,36 @@ export default function MusicPlayer() {
   };
 
   const toggleExpand = () => setIsExpanded((prev) => !prev);
-
   const toggleFullscreen = () => setIsFullscreen((prev) => !prev);
 
+  // Keep play state synced
   useEffect(() => {
     if (play) {
-      audioElement.play();
+      audioElement.play().catch((err) => console.log("play error:", err));
     } else {
       audioElement.pause();
     }
   }, [play, audioElement]);
 
-  const increaseViews = async () =>{
-    try{
+  // Increase views after 25% playback
+  const increaseViews = async () => {
+    try {
       const res = await axiosInstance.post(`/${currentAudio.audio._id}/views`);
-      if(res.data.videoId == currentAudio.audio._id){
-        setCurrentAudio((prev) => ({...prev, audio: {...prev.audio, views: prev.audio.views + 1}}))
+      if (res.data.videoId === currentAudio.audio._id) {
+        setCurrentAudio((prev) => ({
+          ...prev,
+          audio: {
+            ...prev.audio,
+            views: prev.audio.views + 1,
+          },
+        }));
       }
+    } catch (err) {
+      console.log(err);
     }
-    catch(err){
-      console.log(err)
-    }
-  }
+  };
 
+  // Track listen time
   useEffect(() => {
     if (audioElement) {
       const intervalId = setInterval(() => {
@@ -84,42 +92,46 @@ export default function MusicPlayer() {
           });
         }
       }, 1000);
-      // Cleanup function to clear interval
+
       return () => clearInterval(intervalId);
     }
   }, [audioElement, play]);
 
+  // 🔥 Only reset source when track changes
   useEffect(() => {
     if (currentAudio?.audio?.videoFile) {
-      console.log(currentAudio);
-      audioElement.src = currentAudio.audio.videoFile;
-      audioElement.currentTime = 0;
-      setPlay(currentAudio.isPlaying || false);
+      if (audioElement.src !== currentAudio.audio.videoFile) {
+        audioElement.src = currentAudio.audio.videoFile;
+        audioElement.currentTime = 0;
+      }
+      if (currentAudio.isPlaying) {
+        setPlay(true);
+        audioElement.play();
+      }
     }
-  }, [currentAudio, audioElement]);
+  }, [currentAudio?.audio?._id]); // depend on ID, not whole object
 
+  // Fetch comments only when fullscreen
   useEffect(() => {
-    if (!isFullscreen) return;
+    if (!isFullscreen || !currentAudio?.audio?._id) return;
 
     const fetchComments = async () => {
       try {
         setFullScreenLoading(true);
         const { data } = await axiosInstance.get(`/comments/${currentAudio.audio._id}`);
-        console.log(data);
 
-        // ApiResponse => { status, data: <array>, message }
         const comments = Array.isArray(data?.data) ? data.data : [];
 
-        setCurrentAudio(prev => ({
+        setCurrentAudio((prev) => ({
           ...prev,
           audio: {
             ...prev.audio,
-            comments,  // <-- store the array directly
+            comments, // ✅ only update comments
           },
         }));
       } catch (e) {
         console.error(e);
-        setCurrentAudio(prev => ({
+        setCurrentAudio((prev) => ({
           ...prev,
           audio: { ...prev.audio, comments: [] },
         }));
@@ -129,10 +141,9 @@ export default function MusicPlayer() {
     };
 
     fetchComments();
-  }, [isFullscreen]);
+  }, [isFullscreen, currentAudio?.audio?._id]);
 
-
-
+  // Progress bar update
   useEffect(() => {
     const updateProgress = () => {
       setProgress((audioElement.currentTime / audioElement.duration) * 100 || 0);

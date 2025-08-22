@@ -13,6 +13,7 @@ import UserProfile from './pages/userProfile';
 import LiveStream from './components/liveStreamLocal';
 import LiveStreamListener from './components/liveStreamRemote';
 import SettingsPage from './pages/settings';
+import LandingPage from './pages/landingPage';
 
 export default function App() {
   const { currentUser, setCurrentUser, loading, setLoading, currentAudio, currentLiveStream, setCurrentLiveStream, currentRemoteAudio} = useContext(Authcontext);
@@ -83,6 +84,7 @@ export default function App() {
 
         {/* Routes */}
         <Routes>
+          <Route path='/' element={<LandingPage />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Register" element={<Register />} />
           <Route
