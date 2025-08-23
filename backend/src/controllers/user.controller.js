@@ -9,6 +9,9 @@ import deleteFromCloudinary from "../utils/fileDelete.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { Stream } from "../models/stream.model.js";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateAccessAndRefreshTokens = async (userId) =>{
     try{
@@ -19,13 +22,78 @@ const generateAccessAndRefreshTokens = async (userId) =>{
         user.refreshToken = refreshToken
         await user.save({validateBeforeSave: false})                      // As password field is not present here we should not validate it
         
-        return {accessToken,refreshToken}        
+        return {refreshToken, accessToken}        
     }
     catch(err){
         console.log(err)
         throw new ApiError(500,"Something went wrong during token generation")
     }
 }
+
+const googleLogin = asyncHandler(async (req, res) => {
+    try {
+        const token = req.body.token;
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        
+        const { name, email, picture, sub, email_verified } = ticket.getPayload();
+
+        if (!email_verified) {
+            throw new ApiError(401, "Google account not verified");
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Extract first name (fallback if full name is missing)
+            let baseUsername = name ? name.split(" ")[0].toLowerCase() : "user";
+            baseUsername = baseUsername.replace(/[^a-z0-9]/gi, ""); // remove spaces/special chars
+
+            let username = baseUsername;
+            let counter = 1;
+
+            // Ensure username is unique
+            while (await User.findOne({ username })) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+            }
+
+            // Create new user
+            user = await User.create({
+                googleId: sub,
+                email,
+                fullName: name,
+                avatar: picture,
+                username
+            });
+        }
+        
+        const { refreshToken, accessToken } = await generateAccessAndRefreshTokens(user._id);
+
+        const loggedInUser = await User.findById(user._id).select(
+            "-password -refreshToken"
+        );
+
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        };
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(new ApiResponse(200, {
+                user: loggedInUser,
+            }));
+
+    } catch (error) {
+        console.error("Google login error:", error);
+        throw new ApiError(401, error.message || "Invalid token");
+    }
+});
 
 const registerUser = asyncHandler(async (req,res) => {
     // Get details from request
@@ -90,8 +158,6 @@ const registerUser = asyncHandler(async (req,res) => {
     }
 
     return res.status(201).json(new ApiResponse(200,createdUser,"User registered successfully"))
-
-
 });
 
 const loginUser = asyncHandler(async (req,res)=>{
@@ -137,12 +203,7 @@ const loginUser = asyncHandler(async (req,res)=>{
     .cookie("refreshToken",refreshToken,options)
     .json(new ApiResponse(200,{
         user: loggedInUser,
-        accessToken,                              // We are sending this again to take care of the case when the use might be using a mobile app and wants to store the token in the app's local storage.
-        refreshToken                              // or in cases where the user want to store the information somewhere else as well 
     }))
-
-
-
 });
 
 const logoutUser = asyncHandler(async (req,res)=>{
@@ -553,4 +614,4 @@ const clearHistory = asyncHandler(async (req, res) => {
     }
 });
 
-export {registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory, userContent, clearHistory};
+export {googleLogin, registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory, userContent, clearHistory};

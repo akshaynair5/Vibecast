@@ -3,6 +3,12 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const userSchema  = new mongoose.Schema({
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,   // This is used to allow multiple null values in a unique field
+        index: true
+    },
     username: {
         type:String,
         required:true,
@@ -40,7 +46,7 @@ const userSchema  = new mongoose.Schema({
     },
     password:{
         type:String,
-        required: [true,'Password is required'],
+        required: false,
         minlength:6,
     },
     watchHistory: [

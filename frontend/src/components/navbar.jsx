@@ -3,6 +3,7 @@ import { Authcontext } from "../contextProvider";
 import logout from "../services/logout";
 import SearchBar from "./search";
 import { Link, useLocation } from "react-router-dom";
+import defaultAvatar from '../assets/default-avatar.jpg' 
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,7 +82,7 @@ const Navbar = () => {
                 <span className="sr-only">Open user menu</span>
                 <img
                   className="h-8 w-8 rounded-full"
-                  src={currentUser.avatar}
+                  src={currentUser.avatar ? currentUser.avatar : defaultAvatar}
                   alt="Profile"
                 />
               </button>

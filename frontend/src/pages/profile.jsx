@@ -11,6 +11,8 @@ import StreamCard from '../components/liveAudioCard';
 import Select from "react-select";
 import { Mic, PlusCircle, XCircle, Upload } from "lucide-react";
 import Subscribers from '../components/subscriberFormatter';
+import defaultCoverImage from '../assets/default-cover.png'
+import defaultAvatar from '../assets/default-avatar.jpg' 
 
 function Profile() {
     const {currentUser, setCurrentUser, currentAudio, setCurrentLiveStream} = useContext(Authcontext)
@@ -337,7 +339,7 @@ function Profile() {
       <div className="relative w-full h-64 bg-transparent">
       {/* Cover Image */}
       <img
-        src={previewCoverImage}
+        src={previewCoverImage ? previewCoverImage : defaultCoverImage}
         alt="Cover"
         className="object-cover w-full h-full rounded-lg cursor-pointer z-0 opacity-50"
         onClick={() => setIsCoverModalOpen(true)} // Open modal on click
@@ -367,7 +369,7 @@ function Profile() {
               {previewCoverImage && (
                 <div className="mb-4">
                   <img
-                    src={previewCoverImage}
+                    src={previewCoverImage ? previewCoverImage : defaultCoverImage}
                     alt="Preview"
                     className="w-full h-40 object-cover rounded-lg border border-gray-700 shadow-md"
                   />
@@ -423,7 +425,7 @@ function Profile() {
         {/* Profile Picture */}
         <div className="flex justify-center md:justify-start w-full md:w-auto mb-4 md:mb-0">
           <img
-            src={previewProfileImage}
+            src={previewProfileImage ? previewProfileImage : defaultAvatar}
             alt="Profile"
             className="w-36 h-36 rounded-full border-4 border-white shadow-lg cursor-pointer"
             onClick={() => setIsModalOpen(true)} // Open modal on click

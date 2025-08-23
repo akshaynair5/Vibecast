@@ -1,10 +1,10 @@
-import React, { useContext, useState } from "react";
-import axios from "axios";
+import { useContext, useState } from "react";
 import { Authcontext } from "../contextProvider";
 import axiosInstance from "../services/axiosInstance";
 import { Link } from "react-router-dom";
 
 const Register = () => {
+  const clientId = import.meta.env.VITE_REACT_APP_GOOGLE_CLIENT_ID
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -85,6 +85,44 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  const handleContinueWithGoogle = () => {
+    /* global google */
+    if (!clientId) {
+      console.error("Google client ID not found");
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        try {
+          const token = response.credential; // <-- Google ID Token
+
+          const res = await axiosInstance.post(
+            "/users/google", 
+            { token },
+            { withCredentials: true } // send/receive cookies
+          );
+
+          console.log("Google login success:", res.data);
+
+          localStorage.setItem("userData", JSON.stringify(res.data.message.user));
+          setCurrentUser(res.data.message.user);
+
+          navigate("/Home");
+        } catch (err) {
+          console.error("Google login error:", err);
+          setErrors({
+            form: err.response?.data?.message || "Google login failed",
+          });
+        }
+      },
+    });
+
+    // Trigger the Google One Tap popup
+    google.accounts.id.prompt();
+  };
+  
 
 return (
   <div className="min-h-screen w-[100vw] absolute top-0 left-0 bg-gradient-to-b from-[#111827] via-[#0f0f0f] to-black flex items-center justify-center overflow-y-scroll overflow-x-hidden">
@@ -244,17 +282,30 @@ return (
             </div>
 
             {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 rounded-lg font-medium text-white tracking-wide transition
-                bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600
-                hover:from-pink-500 hover:via-purple-500 hover:to-indigo-500
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 focus:ring-offset-black
-                ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-            >
-              {loading ? "Registering..." : "Register"}
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2.5 text-white/80 hover:bg-white/10 transition"
+                onClick = {() => {handleContinueWithGoogle()}}
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                  <path d="M21.35 11.1h-9.18v2.92h5.33c-.24 1.5-1.6 4.4-5.33 4.4-3.22 0-5.85-2.66-5.85-5.94 0-3.28 2.63-5.94 5.85-5.94 1.84 0 3.06.77 3.77 1.43l2.57-2.48C16.82 3.5 14.78 2.6 12.17 2.6 6.97 2.6 2.78 6.83 2.78 12s4.19 9.4 9.39 9.4c5.43 0 9.02-3.82 9.02-9.2 0-.62-.07-1.08-.16-1.6z" />
+                </svg>
+                <span className="text-sm">Continue</span>
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-medium text-white tracking-wide transition
+                  bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600
+                  hover:from-pink-500 hover:via-purple-500 hover:to-indigo-500
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 focus:ring-offset-black
+                  ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+              >
+                {loading ? "Registering..." : "Register"}
+              </button>
+            </div>
+
 
             {/* Link to login */}
             <p className="text-center text-sm text-white/60 mt-4">

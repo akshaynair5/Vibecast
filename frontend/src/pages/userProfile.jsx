@@ -10,6 +10,8 @@ import AudioCard from '../components/audioCard';
 import StreamCard from '../components/liveAudioCard';
 import Subscribers from '../components/subscriberFormatter';
 import { useParams } from 'react-router-dom';
+import defaultCoverImage from '../assets/default-cover.png'
+import defaultAvatar from '../assets/default-avatar.jpg' 
 
 function UserProfile() {
   const { currentUser, setCurrentUser, currentAudio, collectUser } = useContext(Authcontext);
@@ -98,7 +100,7 @@ function UserProfile() {
       <div className="relative w-full h-64 bg-transparent">
       {/* Cover Image */}
       <img
-        src={userProfileData?.coverImage}
+        src={userProfileData?.coverImage || defaultCoverImage}
         alt="Cover"
         className="object-cover w-full h-full rounded-lg cursor-pointer z-0 opacity-50"
       />
@@ -118,7 +120,7 @@ function UserProfile() {
         {/* Profile Picture */}
         <div className="flex-shrink-0 mb-4 md:mb-0">
           <img
-            src={userProfileData?.avatar}
+            src={userProfileData?.avatar ? userProfileData?.avatar : defaultAvatar}
             alt="Profile"
             className="w-36 h-36 rounded-full border-4 border-white shadow-lg cursor-pointer"
           />

@@ -5,6 +5,7 @@ import { Authcontext } from "../contextProvider";
 import axiosInstance from "../services/axiosInstance";
 
 const Login = () => {
+  const clientId = import.meta.env.VITE_REACT_APP_GOOGLE_CLIENT_ID;
   const [formData, setFormData] = useState({
     email: "",
     username: "",
@@ -65,6 +66,43 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContinueWithGoogle = () => {
+    /* global google */
+    if (!clientId) {
+      console.error("Google client ID not found");
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        try {
+          const token = response.credential; // <-- Google ID Token
+
+          const res = await axiosInstance.post(
+            "/users/google", 
+            { token },
+            { withCredentials: true } // send/receive cookies
+          );
+
+          console.log("Google login success:", res.data);
+
+          localStorage.setItem("userData", JSON.stringify(res.data.message.user));
+          setCurrentUser(res.data.message.user);
+
+          navigate("/Home");
+        } catch (err) {
+          console.error("Google login error:", err);
+          setErrors({
+            form: err.response?.data?.message || "Google login failed",
+          });
+        }
+      },
+    });
+
+    // Trigger the Google One Tap popup
+    google.accounts.id.prompt();
   };
 
 return (
@@ -202,6 +240,7 @@ return (
             <button
               type="button"
               className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2.5 text-white/80 hover:bg-white/10 transition"
+              onClick = {() => {handleContinueWithGoogle()}}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
                 <path d="M21.35 11.1h-9.18v2.92h5.33c-.24 1.5-1.6 4.4-5.33 4.4-3.22 0-5.85-2.66-5.85-5.94 0-3.28 2.63-5.94 5.85-5.94 1.84 0 3.06.77 3.77 1.43l2.57-2.48C16.82 3.5 14.78 2.6 12.17 2.6 6.97 2.6 2.78 6.83 2.78 12s4.19 9.4 9.39 9.4c5.43 0 9.02-3.82 9.02-9.2 0-.62-.07-1.08-.16-1.6z" />
