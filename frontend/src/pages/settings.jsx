@@ -34,6 +34,8 @@ export default function SettingsPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [userNameError, setUserNameError] = useState(false);
+  const [updateError, setUpdateError] = useState("");
 
   const handleEdit = (field, value) => {
     setEditingField(field);
@@ -44,28 +46,53 @@ export default function SettingsPage() {
     setTempValue(e.target.value);
     setShowSaveButton(true);
   };
-
+``
   const handleSave = async () => {
     if (editingField) {
       setFormData({ ...formData, [editingField]: tempValue });
       setEditingField(null);
       setShowSaveButton(false);
+      setUserNameError(false);
+      setUpdateError("");
 
       try {
-        // Assuming the backend is set up with a `/api/update-user-details` endpoint
-        const response = await axiosInstance.patch("/users/update-user-details", formData);
+        // If username is being updated, validate availability first
+        if (editingField === "username") {
+          const checkRes = await axiosInstance.post("/users/check", {
+            username: tempValue,
+          });
 
-        if (response.ok) {
+          if (
+            checkRes.data.data.isAvailable === false &&
+            tempValue !== currentUser.username
+          ) {
+            setUserNameError(true);
+            return;
+          }
+        }
+
+        // Update user details
+        const response = await axiosInstance.patch(
+          "/users/update-user-details",
+          { ...formData, [editingField]: tempValue }
+        );
+
+        if (response.status === 200) {
+          // Update context state
+          setCurrentUser((prev) => ({ ...prev, [editingField]: tempValue }));
           console.log("User details updated successfully");
         } else {
-          console.error("Error updating details:", data.message || "Error");
+          setUpdateError(response.data?.message || "Failed to update details.");
         }
       } catch (error) {
-        console.error("An error occurred while updating details:", error);
+        console.error("Error while updating details:", error);
+        setUpdateError(
+          error.response?.data?.message ||
+            "An unexpected error occurred. Please try again."
+        );
       }
     }
   };
-
   const validatePassword = (pass) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return regex.test(pass);
@@ -128,6 +155,12 @@ export default function SettingsPage() {
         >
           <div>
             <p className="text-gray-300 capitalize text-left">{key.replace(/([A-Z])/g, " $1")}</p>
+            {key === "username" && userNameError && (
+              <p className="mt-1 text-sm text-red-500">This username is already taken</p>
+            )}
+            {updateError && (
+              <p className="mt-4 text-center text-red-500">{updateError}</p>
+            )}
             {editingField === key ? (
               <textarea
                 value={tempValue}

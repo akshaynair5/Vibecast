@@ -1,0 +1,14 @@
+<svg viewBox="0 0 24 24" className="h-6 w-6 text-white">
+    <path
+      d="M5 17c2.5-2 5.5-2 9 0m-10-4c3.5-3 9.5-3 14 0M5 9c4-3 10-3 14 0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="10,8 16,12 10,16"
+      fill="currentColor"
+    />
+  </svg>

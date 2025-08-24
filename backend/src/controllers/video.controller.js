@@ -145,14 +145,6 @@ const getVideoById = asyncHandler(async (req, res) => {
                 as: "ownerInfo",
             },
         },
-        // {
-        //     $lookup: {
-        //         from: "comments",
-        //         localField: "_id",
-        //         foreignField: "video",
-        //         as: "comments",
-        //     },
-        // },
         {
             $lookup: {
                 from: "likes",
@@ -162,93 +154,20 @@ const getVideoById = asyncHandler(async (req, res) => {
             },
         },
         {
-            // Perform a $lookup for the comment owners
             $lookup: {
-                from: "users",
-                localField: "comments.owner",
-                foreignField: "_id",
-                as: "commentOwners",
+                from: "comments",
+                localField: "_id",
+                foreignField: "video",
+                as: "comments",
             },
         },
-        // {
-        //     $addFields: {
-        //         comments: {
-        //             $map: {
-        //                 input: "$comments",
-        //                 as: "comment",
-        //                 in: {
-        //                     _id: "$$comment._id",
-        //                     content: "$$comment.content",
-        //                     createdAt: "$$comment.createdAt",
-        //                     owner: {
-        //                         _id: {
-        //                             $arrayElemAt: [
-        //                                 {
-        //                                     $map: {
-        //                                         input: {
-        //                                             $filter: {
-        //                                                 input: "$commentOwners",
-        //                                                 as: "owner",
-        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-        //                                             },
-        //                                         },
-        //                                         as: "matchedOwner",
-        //                                         in: "$$matchedOwner._id",
-        //                                     },
-        //                                 },
-        //                                 0,
-        //                             ],
-        //                         },
-        //                         username: {
-        //                             $arrayElemAt: [
-        //                                 {
-        //                                     $map: {
-        //                                         input: {
-        //                                             $filter: {
-        //                                                 input: "$commentOwners",
-        //                                                 as: "owner",
-        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-        //                                             },
-        //                                         },
-        //                                         as: "matchedOwner",
-        //                                         in: "$$matchedOwner.username",
-        //                                     },
-        //                                 },
-        //                                 0,
-        //                             ],
-        //                         },
-        //                         avatar: {
-        //                             $arrayElemAt: [
-        //                                 {
-        //                                     $map: {
-        //                                         input: {
-        //                                             $filter: {
-        //                                                 input: "$commentOwners",
-        //                                                 as: "owner",
-        //                                                 cond: { $eq: ["$$owner._id", "$$comment.owner"] },
-        //                                             },
-        //                                         },
-        //                                         as: "matchedOwner",
-        //                                         in: "$$matchedOwner.avatar",
-        //                                     },
-        //                                 },
-        //                                 0,
-        //                             ],
-        //                         },
-        //                     },
-        //                 },
-        //             },
-        //         },
-        //     },
-        // },
         {
             $addFields: {
                 isLiked: {
                     $in: [req.user._id, "$likes.likedBy"], // Check if the user has liked
                 },
-                likeCount: {
-                    $size: "$likes", // Count the number of likes
-                },
+                likeCount: { $size: "$likes" }, // Count likes
+                commentCount: { $size: "$comments" }, // Count comments
             },
         },
         {
@@ -257,11 +176,11 @@ const getVideoById = asyncHandler(async (req, res) => {
                     _id: 1,
                     fullName: 1,
                     avatar: 1,
-                    username: 1
+                    username: 1,
                 },
-                comments: 1,
                 likeCount: 1,
                 isLiked: 1,
+                commentCount: 1,
             },
         },
     ];
@@ -331,6 +250,7 @@ const increaseViews = asyncHandler(async (req, res)=>{
     if(!video){
         throw new ApiError(404,"Video not found");
     }
+    console.log("Views increased", video.views)
     res.json(new ApiResponse(200, "Video views updated successfully", video))
 })
 

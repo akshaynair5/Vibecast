@@ -182,7 +182,26 @@ function UserProfile() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">No live streams available at the moment.</p>
+          <div className="w-full flex flex-col items-center justify-center text-center py-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 10l4.553 2.276A1 1 0 0120 13.118v5.764a1 1 0 01-1.447.894L15 17m0-7V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h7a2 2 0 002-2v-4m0-7l-5 3"
+              />
+            </svg>
+            <p className="text-lg font-semibold text-gray-300">No live streams yet</p>
+            <p className="text-sm text-gray-400 mt-1">
+             {userProfileData.fullName} hasn't shared any live streams yet. Check back later!
+            </p>
+          </div>
         )}
       </div>
     </section>
@@ -230,7 +249,26 @@ function UserProfile() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">No Audios available at the moment.</p>
+          <div className="w-full flex flex-col items-center justify-center text-center py-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 10l4.553 2.276A1 1 0 0120 13.118v5.764a1 1 0 01-1.447.894L15 17m0-7V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h7a2 2 0 002-2v-4m0-7l-5 3"
+              />
+            </svg>
+            <p className="text-lg font-semibold text-gray-300">No audio/podcasts yet</p>
+            <p className="text-sm text-gray-400 mt-1">
+             {userProfileData.fullName} hasn't hosted any audio/podcasts yet. Click "Upload" to start sharing your content!
+            </p>
+          </div>
         )}
       </div>
     </section>

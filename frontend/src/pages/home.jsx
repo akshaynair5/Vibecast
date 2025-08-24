@@ -98,11 +98,20 @@ function Home() {
   };
 
   return (
-    <div className="fixed top-0 left-0 bg-slate-700 w-screen h-screen overflow-y-scroll  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent"
-         style={{
-          backgroundImage: 'linear-gradient(to bottom, #515151, #3d3d3d, #2a2a2a, #191919, #000000)',
-         }}
+    <div
+      className="fixed top-0 left-0 w-screen h-screen overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05), transparent 30%),
+          radial-gradient(circle at 80% 10%, rgba(255,255,255,0.04), transparent 25%),
+          radial-gradient(circle at 0% 80%, rgba(255,255,255,0.03), transparent 25%),
+          linear-gradient(to bottom, #2b2b2b, #1f1f1f, #151515, #0d0d0d, #000000)
+        `,
+        backgroundBlendMode: "overlay"
+      }}
     >
+
+
       <Navbar />
       <Sidebar />
 
@@ -163,6 +172,70 @@ function Home() {
           </section>
         )}
 
+        {(activeSection === 'explore' || activeSection === 'All') && (
+            <section
+              className="relative bg-cover bg-center bg-no-repeat rounded-lg h-auto flex flex-col justify-between p-4 mb-4"
+              style={{
+                backgroundImage: 'linear-gradient(to right top, #1d615e, #204c44, #1e382e, #18261d, #0e140d)',
+                minHeight: '400px', // Adjust height as per your needs,
+                backgroundOpacity: '0.5',
+              }}
+            >
+              <div className="flex flex-col items-start justify-center text-white space-y-4">
+                <h2 className="text-4xl font-bold">Now Trending</h2>
+                <button className="flex items-center text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-70" onClick={()=>{handleScrollRight(exploreRef)}}>
+                  Explore <span className="ml-2">→</span>
+                </button>
+              </div>
+
+              <div
+                className="flex overflow-x-auto p-2 z-0 relative first-line scrollbar-none"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  flexDirection: isMobile ? 'column' : 'row', // Change flex direction based on screen size
+                }}
+                ref={exploreRef}
+              >
+                {exploreContent.length > 0 ? (
+                  exploreContent.map((audio) => (
+                    <div
+                      key={audio._id}
+                      style={{
+                        minWidth: isMobile ? '100%' : '25%',
+                        maxWidth: isMobile ? '100%' : '25%',
+                        marginLeft: isMobile ? '0' : '2%',
+                      }}
+                    >
+                      <AudioCard audio={audio} />
+                    </div>
+                  ))
+                ) : (
+                    <div className="w-full flex flex-col items-center justify-center text-center py-10">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-12 w-12 text-gray-400 mb-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 19V6h13M9 6L4 10m0 4l5 4"
+                        />
+                      </svg>
+                      <p className="text-lg font-semibold text-gray-300">No trending content</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Looks like nothing is trending right now. Check back later or explore other
+                        sections!
+                      </p>
+                    </div>
+                  )}
+              </div>
+            </section>
+        )}
+
         {/* For You Section */}
         {(activeSection === 'forYou' || activeSection === 'All') && (
           <section
@@ -203,7 +276,26 @@ function Home() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500">No content available</p>
+                <div className="w-full flex flex-col items-center justify-center text-center py-10">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 text-gray-400 mb-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <p className="text-lg font-semibold text-gray-300">No content yet</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    It looks like you haven’t subscribed to any channels. Subscribe to channels to see content here!
+                  </p>
+                </div>
               )}
             </div>
           </section>
@@ -211,49 +303,7 @@ function Home() {
         )}
 
         {/* Explore Section */}
-        {(activeSection === 'explore' || activeSection === 'All') && (
-            <section
-              className="relative bg-cover bg-center bg-no-repeat rounded-lg h-auto flex flex-col justify-between p-4 mb-4"
-              style={{
-                backgroundImage: 'linear-gradient(to right top, #1d615e, #204c44, #1e382e, #18261d, #0e140d)',
-                minHeight: '400px', // Adjust height as per your needs,
-                backgroundOpacity: '0.5',
-              }}
-            >
-              <div className="flex flex-col items-start justify-center text-white space-y-4">
-                <h2 className="text-4xl font-bold">Now Trending</h2>
-                <button className="flex items-center text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-70" onClick={()=>{handleScrollRight(exploreRef)}}>
-                  Explore <span className="ml-2">→</span>
-                </button>
-              </div>
 
-              <div
-                className="flex overflow-x-auto p-2 z-0 relative first-line scrollbar-none"
-                style={{
-                  scrollSnapType: 'x mandatory',
-                  flexDirection: isMobile ? 'column' : 'row', // Change flex direction based on screen size
-                }}
-                ref={exploreRef}
-              >
-                {exploreContent.length > 0 ? (
-                  exploreContent.map((audio) => (
-                    <div
-                      key={audio._id}
-                      style={{
-                        minWidth: isMobile ? '100%' : '25%',
-                        maxWidth: isMobile ? '100%' : '25%',
-                        marginLeft: isMobile ? '0' : '2%',
-                      }}
-                    >
-                      <AudioCard audio={audio} />
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center text-gray-500">No content available</p>
-                )}
-              </div>
-            </section>
-          )}
 
         {/* Topics Section */}
         {(activeSection === 'topics' || activeSection === 'All') && (
@@ -322,7 +372,26 @@ function Home() {
                 );
               })
             ) : (
-              <p className="text-center text-gray-500">No topics available</p>
+              <div className="w-full flex flex-col items-center justify-center text-center py-10">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 text-gray-400 mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12h6m-3-3v6m9 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-lg font-semibold text-gray-300">No topics available</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  It looks like there aren’t any videos in topics right now. Try exploring other sections!
+                </p>
+              </div>
             )}
           </section>
         )}

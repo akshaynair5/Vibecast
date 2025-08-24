@@ -54,7 +54,6 @@ const Login = () => {
         username: "",
         password: "",
       });
-      console.log(response.data);
       localStorage.setItem("userData", JSON.stringify(response.data.message.user));
       setCurrentUser(response.data?.message.user);
       navigate("/Home")
@@ -129,6 +128,10 @@ return (
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                />
+                <polygon
+                  points="10,8 16,12 10,16"
+                  fill="currentColor"
                 />
               </svg>
             </div>

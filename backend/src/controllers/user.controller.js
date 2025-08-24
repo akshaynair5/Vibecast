@@ -283,10 +283,27 @@ const getCurrentUser = asyncHandler(async (req,res)=>{
     res.status(200).json(new ApiResponse(200,req.user,"User has been fetched successfully"))
 })
 
-const updateUserDetails = asyncHandler(async (req,res)=>{
-    const {fullName, description, email} = req.body;
+const checkUserNameAvailability = asyncHandler(async (req, res) =>{
+    const { username } = req.body;
+    console.log(req.body)
+    if(!username){
+        throw new ApiError(400,"Username is required")
+    }
+    
+    const user = await User.findOne({username: username.toLowerCase()});
 
-    if(!(fullName || email || description)){
+    if(user){
+        return res.status(200).json(new ApiResponse(200, "Username is already taken", {isAvailable: false}))
+    }
+    else{
+        return res.status(200).json(new ApiResponse(200, "Username is available", {isAvailable: true}))
+    }
+})
+
+const updateUserDetails = asyncHandler(async (req,res)=>{
+    const {fullName, description, username, email} = req.body;
+
+    if(!(fullName || email || description || username)){
         throw new ApiError(400,"Full Name or Email is required")
     }
 
@@ -306,7 +323,8 @@ const updateUserDetails = asyncHandler(async (req,res)=>{
             $set:{
                 fullName,
                 email,
-                description
+                description,
+                username: username?.toLowerCase()
             }   
         },
         {new:true}
@@ -591,7 +609,7 @@ const userContent = asyncHandler(async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: "Error fetching home page data", error });
     }
-  });  
+});  
 
 const clearHistory = asyncHandler(async (req, res) => {
     try {
@@ -614,4 +632,4 @@ const clearHistory = asyncHandler(async (req, res) => {
     }
 });
 
-export {googleLogin, registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory, userContent, clearHistory};
+export {googleLogin, registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateUserDetails, checkUserNameAvailability, updateAvatar, updateCoverImage, getUserChannelProfile, getWatchHistory, userContent, clearHistory};

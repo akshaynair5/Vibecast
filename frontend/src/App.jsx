@@ -1,5 +1,5 @@
 import './App.css';
-import {BrowserRouter,Navigate,Route, Routes} from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Login from './pages/login';
 import Home from './pages/home';
 import Register from './pages/register';
@@ -16,8 +16,8 @@ import SettingsPage from './pages/settings';
 import LandingPage from './pages/landingPage';
 
 export default function App() {
-  const { currentUser, setCurrentUser, loading, setLoading, currentAudio, currentLiveStream, setCurrentLiveStream, currentRemoteAudio} = useContext(Authcontext);
-  const [apiHealthy, setApiHealthy] = useState(false); // To check API health
+  const { currentUser, setCurrentUser, loading, setLoading, currentAudio, currentLiveStream, setCurrentLiveStream, currentRemoteAudio } = useContext(Authcontext);
+  const [apiHealthy, setApiHealthy] = useState(true); // Assume healthy until checked
 
   // Health check on app load
   useEffect(() => {
@@ -38,7 +38,6 @@ export default function App() {
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        // Attempt to refresh the access token
         const response = await axiosInstance.post('/users/refresh-token');
         const user = response.data.message.user;
         setCurrentUser(user);
@@ -48,7 +47,7 @@ export default function App() {
         localStorage.removeItem('userData');
         logout();
       } finally {
-        setLoading(false); // Ensure loading state is updated
+        setLoading(false);
       }
     };
 
@@ -60,7 +59,15 @@ export default function App() {
   // Protected Route Component
   const ProtectedRoute = ({ children }) => {
     if (loading) {
-      return <div>Loading...</div>;
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
+          <div className="flex flex-col items-center space-y-4">
+            {/* Spinner */}
+            <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-300 text-sm font-medium">Loading...</p>
+          </div>
+        </div>
+      );
     }
 
     if (!currentUser) {
@@ -70,8 +77,9 @@ export default function App() {
     return children;
   };
 
-  if (!apiHealthy) {
-    return <div>API is currently unavailable. Please try again later.</div>;
+  // If API is down, always redirect to landing
+  if (!apiHealthy && window.location.pathname !== '/') {
+    return <LandingPage />;
   }
 
   return (
@@ -79,12 +87,12 @@ export default function App() {
       <div>
         {/* Conditionally render the MusicPlayer */}
         {currentAudio.audio && <MusicPlayer />}
-        {currentLiveStream?.description && <LiveStream /> }
+        {currentLiveStream?.description && <LiveStream />}
         {currentRemoteAudio?.description && <LiveStreamListener stream={currentRemoteAudio} />}
 
         {/* Routes */}
         <Routes>
-          <Route path='/' element={<LandingPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Register" element={<Register />} />
           <Route
@@ -107,11 +115,18 @@ export default function App() {
             path="/settings"
             element={
               <ProtectedRoute>
-                <SettingsPage/>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />
-          <Route path=":username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route
+            path=":username"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </BrowserRouter>

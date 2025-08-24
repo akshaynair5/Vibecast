@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { Authcontext } from "../contextProvider";
 import axiosInstance from "../services/axiosInstance";
 import { Link } from "react-router-dom";
+import { set } from "date-fns";
 
 const Register = () => {
   const clientId = import.meta.env.VITE_REACT_APP_GOOGLE_CLIENT_ID
@@ -17,6 +18,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userNameError, setUserNameError] = useState(false);
   const {currentUser, setCurrentUser} = useContext(Authcontext);
 
   const handleChange = (e) => {
@@ -49,6 +51,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setUserNameError(false);
     if (!validateForm()) return;
 
     const formDataObj = new FormData();
@@ -60,6 +63,12 @@ const Register = () => {
 
     try {
       setLoading(true);
+      const checkUserName = await axiosInstance.post('/users/check', updateData);
+
+      if(checkUserName.data.data.isAvailable === false && updateData.username !== currentUser.username){
+        setUserNameError(true);
+        return;
+      }
       const response = await axiosInstance.post(
         "/users/register",
         formDataObj,
@@ -139,7 +148,7 @@ return (
         <div className="relative z-10">
           <div className="flex justify-center mb-6">
             <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-xl">
-              <svg viewBox="0 0 24 24" className="h-6 w-6 md:h-8 md:w-8 text-white">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 text-white">
                 <path
                   d="M5 17c2.5-2 5.5-2 9 0m-10-4c3.5-3 9.5-3 14 0M5 9c4-3 10-3 14 0"
                   fill="none"
@@ -147,6 +156,10 @@ return (
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                />
+                <polygon
+                  points="10,8 16,12 10,16"
+                  fill="currentColor"
                 />
               </svg>
             </div>
@@ -240,11 +253,14 @@ return (
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 p-3 outline-none focus:ring-2 focus:ring-pink-500/60 focus:border-pink-500/60"
+                className={`w-full rounded-lg bg-white/5 border ${userNameError ? 'border-red-500' : 'border-white/10'} text-white placeholder-white/40 p-3 outline-none focus:ring-2 focus:ring-pink-500/60 focus:border-pink-500/60`}
                 placeholder="@yourhandle"
               />
               {errors.username && (
                 <p className="text-red-400 text-xs mt-1">{errors.username}</p>
+              )}
+              {userNameError && (
+                <p className="mt-1 text-sm text-red-500">This username is already taken</p>
               )}
             </div>
 

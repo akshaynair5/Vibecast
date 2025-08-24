@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { Authcontext } from "../contextProvider";
 import Like from '../assets/like.png'
 import unLike from '../assets/unlike.png'
@@ -7,7 +7,7 @@ import Likes from "./likeFormatter";
 import { set } from "date-fns";
 import PlaylistModal from "./playlistComponent";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X, Trash2, Check, Edit3 } from "lucide-react"
+import { Play, Pause, Maximize, Minimize, Heart, HeartOff, Plus, X, Trash2, Check, Edit3, Eye, MessageSquare } from "lucide-react"
 import AddToPlaylistModal from "./addToPlaylistModal";
 
 export default function MusicPlayer() {
@@ -24,6 +24,7 @@ export default function MusicPlayer() {
   const [editingComment, setEditingComment] = useState(null);
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const hasIncreasedView = useRef(false);
 
   const togglePlayPause = () => {
     setPlay((prev) => {
@@ -63,7 +64,7 @@ export default function MusicPlayer() {
   // Increase views after 25% playback
   const increaseViews = async () => {
     try {
-      const res = await axiosInstance.post(`/${currentAudio.audio._id}/views`);
+      const res = await axiosInstance.post(`/video/${currentAudio.audio._id}/views`);
       if (res.data.videoId === currentAudio.audio._id) {
         setCurrentAudio((prev) => ({
           ...prev,
@@ -77,7 +78,6 @@ export default function MusicPlayer() {
       console.log(err);
     }
   };
-
   // Track listen time
   useEffect(() => {
     if (audioElement) {
@@ -85,9 +85,15 @@ export default function MusicPlayer() {
         if (play) {
           setListenTime((prev) => {
             const newTime = prev + 1;
-            if (newTime >= currentAudio.audio.duration / 4) {
+
+            if (
+              !hasIncreasedView.current &&
+              newTime >= currentAudio.audio.duration / 4
+            ) {
+              hasIncreasedView.current = true; // ✅ only once
               increaseViews();
             }
+
             return newTime;
           });
         }
@@ -95,7 +101,7 @@ export default function MusicPlayer() {
 
       return () => clearInterval(intervalId);
     }
-  }, [audioElement, play]);
+  }, [audioElement, play, currentAudio?.audio?.duration]);
 
   // 🔥 Only reset source when track changes
   useEffect(() => {
@@ -163,7 +169,6 @@ export default function MusicPlayer() {
         setIsExpanded(true);
       }
       const res = await axiosInstance.post(`/like/toggle/v/${currentAudio.audio._id}`)
-      console.log(res.data)
       setCurrentAudio((prev) => {
         prev.audio.isLiked = true;
         prev.audio.likeCount += 1;
@@ -179,10 +184,13 @@ export default function MusicPlayer() {
   const toggleUnLike = async (e) => {
     e.preventDefault();
     setDisableBtn(true);
+
     try {
       const res = await axiosInstance.delete(
         `/like/toggleDislike`,
-        { params: { videoId: currentAudio.audio._id, likedBy: currentUser._id } }
+        {
+          data: { videoId: currentAudio.audio._id }
+        }
       );
       console.log(res.data);
       setCurrentAudio((prev) => {
@@ -248,7 +256,10 @@ export default function MusicPlayer() {
         comment: newComment,
       });
       setNewComment("");
-      console.log(response.data.message);
+      setCurrentAudio((prev) => {
+        prev.audio.commentsCount += 1;
+        return { ...prev };
+      });
       currentAudio.audio.comments.push({...response.data.message, owner: currentUser});
       console.log(currentAudio)
     } catch (error) {
@@ -420,9 +431,10 @@ export default function MusicPlayer() {
           }}
         >
           {currentAudio.audio?.isLiked ? (
-            <Heart size={20} className="text-red-500" />
-          ) : (
             <HeartOff size={20} />
+            
+          ) : (
+            <Heart size={20} className="text-red-500" />
           )}
         </button>
         <AddToPlaylistModal
@@ -437,6 +449,19 @@ export default function MusicPlayer() {
           <Plus size={20} />
         </button>
       </div>
+
+      <div className="flex items-center justify-between w-full mt-2 text-gray-300 text-sm">
+        <div className="flex items-center gap-1">
+          <Eye size={16} /> <span>{currentAudio.audio?.views || 0}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Heart size={16} /> <span>{currentAudio.audio?.likeCount || 0}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <MessageSquare size={16} /> <span>{currentAudio.audio?.commentsCount || 0}</span>
+        </div>
+      </div>
+
       <input
         type="range"
         min="0"

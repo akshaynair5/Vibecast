@@ -9,10 +9,12 @@ import { Authcontext } from '../contextProvider';
 import AudioCard from '../components/audioCard';
 import StreamCard from '../components/liveAudioCard';
 import Select from "react-select";
-import { Mic, PlusCircle, XCircle, Upload } from "lucide-react";
+import { Mic, PlusCircle, XCircle, Upload, Pencil } from "lucide-react";
 import Subscribers from '../components/subscriberFormatter';
 import defaultCoverImage from '../assets/default-cover.png'
 import defaultAvatar from '../assets/default-avatar.jpg' 
+import { desc } from 'framer-motion/client';
+import { set } from 'date-fns';
 
 function Profile() {
     const {currentUser, setCurrentUser, currentAudio, setCurrentLiveStream} = useContext(Authcontext)
@@ -30,6 +32,13 @@ function Profile() {
     const [errorImageUpload, setErrorImageUpload] = useState("");
     const [success, setSuccess] = useState("");
     const [showAddPodcastModal, setShowAddPodcastModal] = useState(false);
+    const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
+    const [editedUserDetails, setEditedUserDetails] = useState({
+      fullName: currentUser.fullName,
+      username: currentUser.username,
+      description: currentUser.description || "",
+    })
+    const [userNameError, setUserNameError] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [formData, setFormData] = useState({
       video: "",
@@ -190,48 +199,52 @@ function Profile() {
         alert("Failed to delete video. Please try again.");
       }
     };
-      
+    
+    const handleEditedInput = (e) => {
+      const { name, value } = e.target;
+      setEditedUserDetails((prev) => ({...prev, [name]: value}));
+    }
 
     const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: type === "checkbox" ? checked : value,
-        }));
-      };
+      const { name, value, type, checked } = e.target;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    };
     
-      const handleFileChange = (e) => {
-        const { name } = e.target;
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: e.target.files[0], // Store file object
-        }));
-      };
+    const handleFileChange = (e) => {
+      const { name } = e.target;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: e.target.files[0], // Store file object
+      }));
+    };
 
-      const handleTopicChange = (selectedOptions) => {
-        // Update the topics in the formData state
-        setFormData({ ...formData, topics: selectedOptions });
-      };
-    
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-    
-        const formDataToSend = new FormData();
-        for (const key in formData) {
-          formDataToSend.append(key, formData[key]);
-        }
-    
-        try {
-          const response = await axiosInstance.post(
-            `/video/`,
-            formDataToSend
-          );
-          console.log("Podcast added:", response.data);
-          setShowAddPodcastModal(false); // Close modal on success
-        } catch (error) {
-          console.error("Error adding podcast:", error);
-        }
-      };
+    const handleTopicChange = (selectedOptions) => {
+      // Update the topics in the formData state
+      setFormData({ ...formData, topics: selectedOptions });
+    };
+  
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+  
+      const formDataToSend = new FormData();
+      for (const key in formData) {
+        formDataToSend.append(key, formData[key]);
+      }
+  
+      try {
+        const response = await axiosInstance.post(
+          `/video/`,
+          formDataToSend
+        );
+        console.log("Podcast added:", response.data);
+        setShowAddPodcastModal(false); // Close modal on success
+      } catch (error) {
+        console.error("Error adding podcast:", error);
+      }
+    };
   
     // Handle file selection
     const handleAvatarChange = (event) => {
@@ -325,11 +338,43 @@ function Profile() {
           }
     };
 
+    const handleUserDetailsEdit = async (e) =>{
+      e.preventDefault();
+
+      setUserNameError(false);
+      const updateData = {
+        fullName: editedUserDetails.fullName,
+        username: editedUserDetails.username,
+        description: editedUserDetails.description,
+      };
+
+      try{
+        const res = await axiosInstance.post('/users/check', updateData);
+
+        if(res.data.data.isAvailable === false && updateData.username !== currentUser.username){
+          setUserNameError(true);
+          return;
+        }
+        const response = await axiosInstance.patch(`/users/update-user-details`, updateData);
+        setCurrentUser((prev) => ({...prev, ...updateData}));
+        setShowEditDetailsModal(false);
+      }
+      catch(err){
+        console.log(err)
+      }
+    }
+
   return (
     <div className='fixed top-0 left-0 w-screen h-screen overflow-y-scroll scrollbar-thin scrollbar-thumb-scrollbar scrollbar-track-transparent z-10'
-          style={{
-           backgroundImage: 'linear-gradient(to bottom, #515151, #3d3d3d, #2a2a2a, #191919, #000000)',
-         }}
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 30% 70%, rgba(255,255,255,0.06), transparent 35%),
+          radial-gradient(circle at 70% 30%, rgba(255,255,255,0.04), transparent 30%),
+          radial-gradient(circle at 90% 90%, rgba(255,255,255,0.03), transparent 25%),
+          linear-gradient(to bottom, #1a1a1a, #141414, #0f0f0f, #0a0a0a, #000000)
+        `,
+        backgroundBlendMode: "overlay"
+      }}
     >
       <Navbar/>
       <Sidebar/>
@@ -436,12 +481,21 @@ function Profile() {
         {/* User Info */}
 
         <div className="flex flex-col items-center text-center space-y-3 p-4 bg-transparent rounded-xl w-full sm:w-[80%] mx-auto">
-          <h2 className="text-2xl font-semibold text-white">{currentUser.fullName}</h2>
+          <div className='flex col-2 gap-1 items-center'>
+            <h2 className="text-2xl font-semibold text-white">{currentUser.fullName}</h2>
+            <button
+              onClick={() => setShowEditDetailsModal(true)}
+              className=" ml-[1vw] flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white shadow-md transition-all duration-200"
+            >
+              <Pencil size={16} />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          </div>
 
           {/* Subscriber count */}
           <Subscribers subscribers={currentUser.subscribersCount} />
 
-          <p className="text-sm text-gray-400">Description or bio about the user goes here.</p>
+          <p className="text-sm text-gray-400">{currentUser.description ? currentUser.description : "No description available."}</p>
 
           <div className="flex gap-3">
             <button
@@ -545,6 +599,76 @@ function Profile() {
 
         </div>
       </div>
+      
+      {
+        showEditDetailsModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+              <div className="bg-gray-900 text-white rounded-lg shadow-lg w-96 p-6">
+                <h2 className="text-lg font-semibold text-gray-100 mb-4">Edit Profile</h2>
+                <form onSubmit={handleUserDetailsEdit} className="space-y-4">
+                  {/* Title Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Full Name</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editedUserDetails.fullName}
+                      onChange={handleEditedInput}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-white focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={editedUserDetails.username}
+                      onChange={handleEditedInput}
+                      className={`mt-1 block w-full px-3 py-2 rounded-md shadow-sm bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                        border ${userNameError ? 'border-red-500' : 'border-gray-600'}`}
+                      required
+                    />
+                    {userNameError && (
+                      <p className="mt-1 text-sm text-red-500">This username is already taken</p>
+                    )}
+                  </div>
+
+                  {/* Description Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">Profile Description</label>
+                    <textarea
+                      name="description"
+                      value={editedUserDetails.description}
+                      onChange={handleEditedInput}
+                      rows="3"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-white focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    ></textarea>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg w-40"
+                      onClick={() => setShowEditDetailsModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-40"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+        )
+      }
 
       {showAddPodcastModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
@@ -756,7 +880,26 @@ function Profile() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">No live streams available at the moment.</p>
+          <div className="w-full flex flex-col items-center justify-center text-center py-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 10l4.553 2.276A1 1 0 0120 13.118v5.764a1 1 0 01-1.447.894L15 17m0-7V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h7a2 2 0 002-2v-4m0-7l-5 3"
+              />
+            </svg>
+            <p className="text-lg font-semibold text-gray-300">No live streams yet</p>
+            <p className="text-sm text-gray-400 mt-1">
+             You haven't hosted any live streams yet. Click "Start Live Podcast" to go live and engage with your audience in real-time!
+            </p>
+          </div>
         )}
       </div>
     </section>
@@ -807,7 +950,26 @@ function Profile() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">No Audios available at the moment.</p>
+          <div className="w-full flex flex-col items-center justify-center text-center py-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 10l4.553 2.276A1 1 0 0120 13.118v5.764a1 1 0 01-1.447.894L15 17m0-7V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h7a2 2 0 002-2v-4m0-7l-5 3"
+              />
+            </svg>
+            <p className="text-lg font-semibold text-gray-300">No audio/podcasts yet</p>
+            <p className="text-sm text-gray-400 mt-1">
+             You haven't uploaded any audio/podcasts yet. Click "Upload Audio/Podcast" to add your first one!
+            </p>
+          </div>
         )}
       </div>
     </section>
