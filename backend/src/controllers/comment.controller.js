@@ -60,8 +60,6 @@ const getVideoComments = asyncHandler(async (req,res)=>{
         throw new ApiError(400,"No comments found for this video")
     }
 
-    console.log(comments);
-
     res.status(200).json(new ApiResponse(200,"Comments have been fetched successfully", comments))
 })
 

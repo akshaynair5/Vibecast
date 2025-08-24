@@ -4,10 +4,6 @@ import { getFormattedCreationDate } from "../services/dateFormatter";
 const PlaylistCard = ({ playlist, onPlay, onUpdate, onDelete }) => {
   const { name, description, videoList, createdAt } = playlist;
 
-  useEffect(() => {
-    console.log(playlist);
-  }, [playlist]);
-
   // Limit thumbnails to a maximum of 4
   const safeVideoList = videoList || [];
   const thumbnails =

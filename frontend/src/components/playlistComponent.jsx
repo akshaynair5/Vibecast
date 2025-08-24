@@ -15,7 +15,6 @@ const PlaylistModal = ({ onClose }) => {
     const fetchPlaylists = async () => {
       try {
         const res = await axiosInstance.get(`/playlist/${currentUser._id}`);
-        console.log(res.data)
         setPlaylists(res.data.message);
       } catch (err) {
         console.error(err);
@@ -34,8 +33,6 @@ const PlaylistModal = ({ onClose }) => {
         catch(err){
             console.error(err)
         }
-        
-      console.log(`Added to playlist: ${selectedPlaylist}`);
     }
   };
 

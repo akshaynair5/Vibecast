@@ -24,7 +24,6 @@ const likeVideo = asyncHandler(async (req, res) => {
   
       res.status(200).json(new ApiResponse(200, like, "Video liked successfully"));
     } catch (err) {
-        console.log(err)
       if (err.code === 11000) {
         throw new ApiError(400, "You have already liked this video");
       }
@@ -123,10 +122,8 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 const unlike = asyncHandler(async (req, res)=>{
     const likedBy = req.user._id;
     const itemId = (req.body.videoId || req.body.commentId || req.body.streamId);
-    console.log("unlike", likedBy, itemId)
 
     if(!likedBy || !itemId){
-        console.log(likedBy, itemId)
         throw new ApiError(400, "Please provide like-ID");
     }
 
@@ -138,15 +135,8 @@ const unlike = asyncHandler(async (req, res)=>{
                 { stream: itemId, likedBy: likedBy }
             ]
         });
-
-        if (unLike) {
-            console.log("Like entry deleted successfully.");
-        } else {
-            console.log("No matching like entry found.");
-        }
     }
     catch(err){
-        console.log(err);
         throw new ApiError(500, "Could not unlike");
     }
 

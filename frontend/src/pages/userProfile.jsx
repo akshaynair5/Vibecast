@@ -41,7 +41,6 @@ function UserProfile() {
         if (!targetUsername) return;
 
         const result = await axiosInstance.get(`/users/c/${targetUsername}`);
-        console.log(result.data);
 
         const profile = result.data.message[0];
         setUserProfileData(profile);
@@ -55,14 +54,9 @@ function UserProfile() {
     fetchUserProfileData();
   }, [collectUser, username]);
 
-  useEffect(() => {
-    console.log(userProfileData);
-  }, [userProfileData]);
-
   const handleSubscription = async () => {
     try {
       const res = await axiosInstance.post(`/subscriptions/c/${collectUser?._id || userProfileData._id}`);
-      console.log(res.data);
       setUserProfileData((prevState) => ({
         ...prevState,
         isSubscribed: true,
@@ -76,7 +70,6 @@ function UserProfile() {
   const handleUnSubscription = async () => {
     try {
       const res = await axiosInstance.delete(`/subscriptions/c/${collectUser?._id || userProfileData._id}`);
-      console.log(res.data);
       setUserProfileData((prevState) => ({
         ...prevState,
         isSubscribed: false,

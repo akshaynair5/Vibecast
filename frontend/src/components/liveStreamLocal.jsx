@@ -18,7 +18,6 @@ const LiveStream = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Current live stream:", currentLiveStream);
     if (isLive) {
       try{
         setupConnection();
@@ -111,7 +110,6 @@ const LiveStream = () => {
     // Capture audio from the microphone
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("Audio stream captured:", stream);
       setLocalStream(stream);
   
       // Add audio tracks to the RTCPeerConnection
@@ -126,7 +124,6 @@ const LiveStream = () => {
     const callDocRef = doc(collection(db, "calls"));
     try{
       const res = await axiosInstance.patch(`/stream/${currentLiveStream._id}/set-stream-id`, {streamId: callDocRef.id})
-      console.log("Stream ID set:", res.data.message);
     }
     catch(error){
       console.error("Error setting stream ID:", error);
@@ -194,7 +191,6 @@ const LiveStream = () => {
     console.log("Stopping live stream...");
     try {
       const res = await axiosInstance.patch(`/stream/${currentLiveStream._id}`);
-      console.log(res.data.dat);
     } catch (error) {
       console.error("Error setting stream ID:", error);
       return;

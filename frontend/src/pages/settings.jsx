@@ -80,7 +80,6 @@ export default function SettingsPage() {
         if (response.status === 200) {
           // Update context state
           setCurrentUser((prev) => ({ ...prev, [editingField]: tempValue }));
-          console.log("User details updated successfully");
         } else {
           setUpdateError(response.data?.message || "Failed to update details.");
         }
@@ -121,7 +120,6 @@ export default function SettingsPage() {
       const data = await response.data;
 
       if (response.status === 200) {
-        console.log("Password updated successfully");
         setIsChangingPassword(false);
         setPreviousPassword("");
         setCurrentPassword("");

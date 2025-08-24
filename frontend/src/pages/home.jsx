@@ -53,7 +53,6 @@ function Home() {
       try {
         setLoading(true);
         const response = await axiosInstance.get('/users/home');
-        console.log('API Response:', response.data); // Debug API response
         setExploreContent(response.data?.explore || []);
         setForYouContent(response.data?.forYou || []);
         setLiveStreams(response.data?.liveStreams || []);

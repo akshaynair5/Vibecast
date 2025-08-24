@@ -23,7 +23,6 @@ function AddToPlaylistModal({ isOpen, onClose, musicId }) {
   const handleAddToPlaylist = async (playlistId) => {
     try {
       const res = await axiosInstance.patch(`/playlist/add/${musicId}/${playlistId}`);
-      console.log(res.data);
       onClose(); // close modal after adding
     } catch (err) {
       console.log(err);

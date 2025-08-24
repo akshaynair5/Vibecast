@@ -8,7 +8,6 @@ const NewPlaylistModal = ({ onClose, onAddNewPlaylist }) => {
   const handleCreatePlaylist = async () => {
     try {
       const res = await axiosInstance.post("/playlist", { name: name, description: description });
-      console.log(res.data);
       onAddNewPlaylist(res.data.message);
     } catch (err) {
       console.error(err);

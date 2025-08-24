@@ -40,7 +40,6 @@ const StreamCard = ({ stream, onUpdate, onDelete }) => {
     else{
         try {
             setCurrentRemoteAudio(null);
-            console.log(stream._id)
             const streamDetails = await axiosInstance.get(`/stream/${stream._id}`);
             setCurrentRemoteAudio(streamDetails.data.data);
         } catch (error) {

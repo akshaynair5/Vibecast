@@ -45,7 +45,6 @@ export default function Sidebar() {
     catch(err){
         console.log(err)
     }
-    // console.log(res.data);
   }
 
   const handlePlaylistOpen = (playlist) => {
@@ -54,8 +53,6 @@ export default function Sidebar() {
     setPreviousContentType("playlists")
     setCurrentPlaylist(playlist);
     setContent(playlist.videoList);
-
-    console.log(playlist.videoList);
   }
 
   const handleOpenSubscribedChannels = async () => {
@@ -63,7 +60,6 @@ export default function Sidebar() {
     try{
         const res = await axiosInstance.get(`/subscriptions/`)
         setContent(res.data.message)
-        console.log(res.data.message)
     }
     catch(err){
         console.log(err)
@@ -89,7 +85,6 @@ export default function Sidebar() {
     handleOpenModal("Audios")
     try{
         const res = await axiosInstance.get(`/users/watch-history`)
-        console.log(res.data.message)
         setContent(res.data.message)
     }
     catch(err){
@@ -154,10 +149,8 @@ export default function Sidebar() {
 
   const onDeleteAudio = async (audioId) => {
     try {
-      console.log(audioId, currentPlaylist._id);
   
       const res = await axiosInstance.patch(`/playlist/remove/${audioId}/${currentPlaylist._id}`);
-      console.log(res);
   
       // Make sure prev is an array before using filter
       setContent((prev) => (Array.isArray(prev) ? prev.filter((audio) => audio._id !== audioId) : []));

@@ -25,7 +25,6 @@ const generateAccessAndRefreshTokens = async (userId) =>{
         return {refreshToken, accessToken}        
     }
     catch(err){
-        console.log(err)
         throw new ApiError(500,"Something went wrong during token generation")
     }
 }
@@ -90,7 +89,6 @@ const googleLogin = asyncHandler(async (req, res) => {
             }));
 
     } catch (error) {
-        console.error("Google login error:", error);
         throw new ApiError(401, error.message || "Invalid token");
     }
 });
@@ -225,8 +223,6 @@ const logoutUser = asyncHandler(async (req,res)=>{
 
 const refreshAccessToken = asyncHandler(async (req,res)=>{
     const incomingRefreshToken  = req.cookies.refreshToken ||  req.body.refreshToken
-    console.log(incomingRefreshToken)
-
     if(!incomingRefreshToken){
         throw new ApiError(401,"Refresh Token not Available")
     }
@@ -238,7 +234,7 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
     }
 
     const user = await User.findById(decodedToken._id).select("-password -refreshToken")
-    console.log(user)
+
     if(incomingRefreshToken !== user.refreshToken){
         throw new ApiError(401,"Invalid Token")
     }
@@ -279,13 +275,11 @@ const changeCurrentPassword = asyncHandler(async (req,res)=>{
 })
 
 const getCurrentUser = asyncHandler(async (req,res)=>{
-    console.log(req.user)
     res.status(200).json(new ApiResponse(200,req.user,"User has been fetched successfully"))
 })
 
 const checkUserNameAvailability = asyncHandler(async (req, res) =>{
     const { username } = req.body;
-    console.log(req.body)
     if(!username){
         throw new ApiError(400,"Username is required")
     }
@@ -403,7 +397,6 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
     if(!channelUserId){
         throw new ApiError(400,"Username is required")
     }
-    console.log(channelUserId)
 
     const channel = await User.aggregate(
         [
@@ -476,7 +469,6 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
     if(!channel.length > 1){
         throw new ApiError(400,"Channel does not exist")
     }
-    console.log(channel)
     res.status(200).json(new ApiResponse(200,channel,"Channel has been retrieved successfully"))
 
 })
@@ -536,7 +528,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             new ApiResponse(200, user[0].watchHistory, "Watch history has been retrieved successfully")
         );
     } catch (error) {
-        console.error("Error retrieving watch history:", error);
         res.status(500).json(new ApiResponse(500, null, "An error occurred while retrieving watch history"));
     }
 });
@@ -627,7 +618,6 @@ const clearHistory = asyncHandler(async (req, res) => {
 
         res.json(new ApiResponse(200, user, "Watch history has been cleared successfully"));
     } catch (error) {
-        console.error("Error clearing watch history:", error);
         res.json(new ApiResponse(500, null, "An error occurred while clearing watch history"));
     }
 });

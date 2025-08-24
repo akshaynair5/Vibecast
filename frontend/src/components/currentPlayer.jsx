@@ -38,11 +38,6 @@ export default function MusicPlayer() {
     });
   };
 
-  // Debug
-  useEffect(() => {
-    console.log("Current Audio:", currentAudio);
-  }, [currentAudio]);
-
   const handleSliderChange = (e) => {
     const newTime = (e.target.value / 100) * audioElement?.duration;
     audioElement.currentTime = newTime;
@@ -192,7 +187,6 @@ export default function MusicPlayer() {
           data: { videoId: currentAudio.audio._id }
         }
       );
-      console.log(res.data);
       setCurrentAudio((prev) => {
         prev.audio.isLiked = false;
         prev.audio.likeCount -= 1;
@@ -211,7 +205,6 @@ export default function MusicPlayer() {
           setIsExpanded(true);
         }
         const res = await axiosInstance.post(`/like/toggle/c/${comment._id}`)
-        console.log(res.data)
         setCurrentAudio((prev) => {
           prev.audio.comments[index].hasLiked = true;
           prev.audio.comments[index].likesCount += 1;
@@ -233,7 +226,6 @@ export default function MusicPlayer() {
           data: { commentId: comment._id } 
         }
       );
-      console.log(res.data);
       setCurrentAudio((prev) => {
         // currentAudio.audio?.comments
         prev.audio.comments[index].hasLiked = false;
@@ -261,7 +253,6 @@ export default function MusicPlayer() {
         return { ...prev };
       });
       currentAudio.audio.comments.push({...response.data.message, owner: currentUser});
-      console.log(currentAudio)
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -306,7 +297,6 @@ export default function MusicPlayer() {
   const handleSaveEdit = async (commentId, index, editContent) => {
     // if (!editContent.trim()) return;
     setDisableBtn(true);
-    console.log(editContent)
     try {
       const res = await axiosInstance.patch(`/comments/c/${commentId}`, {data: {comment: editContent}});
         setCurrentAudio((prev) => {
@@ -327,7 +317,6 @@ export default function MusicPlayer() {
     setDisableBtn(true);
     try {
       const res = await axiosInstance.delete(`/comments/c/${commentId}`);
-      console.log(res.data);
       setCurrentAudio((prev) => {
         prev.audio.comments.splice(index, 1);
         return { ...prev };

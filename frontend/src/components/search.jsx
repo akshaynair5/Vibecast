@@ -31,7 +31,6 @@ const SearchAudioComponent = () => {
     setLoading(true);
     setError('');
     try {
-        console.log(category, query)
       const response = await axiosInstance.post('/video/search', {
           query,
           category,
@@ -41,7 +40,6 @@ const SearchAudioComponent = () => {
   
       // Access the correct response structure
       const { videos, users, liveStreams } = response.data.data;
-      console.log(response.data.data);
       setResults({
         users: users?.data || [], // Handle empty or missing values gracefully
         audios: videos?.data || [],

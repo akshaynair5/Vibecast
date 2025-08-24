@@ -6,7 +6,6 @@ import uploadToCloudinary from '../utils/fileUpload.js';
 import ApiError from '../utils/apiError.js';
 
 const createStream = asyncHandler(async (req, res) => {
-    console.log(req.file);
     const { title, description, streamId } = req.body;
     const thumbnailLocalPath = req.file?.path
     const owner = req.user._id;
@@ -96,7 +95,6 @@ const getAllStreams = asyncHandler(async (req, res) => {
 const updateStream = asyncHandler(async (req, res) => {
     const streamId = req.params.streamId;
     const { title, description } = req.body;
-    console.log(title, description)
     const stream = await Stream.findById(streamId);
     if (!stream) {
         const response = new ApiResponse(404, 'Stream not found');

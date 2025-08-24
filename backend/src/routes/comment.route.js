@@ -4,7 +4,7 @@ import { addComment, deleteComment, getVideoComments, updateComment } from "../c
 
 const router = Router()
 
-router.use(verifyJWT)        // As we need ot pass it onto all of the routes in this file
+router.use(verifyJWT)
 
 router.route("/:videoId").get(getVideoComments).post(addComment);
 

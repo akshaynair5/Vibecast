@@ -18,8 +18,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
       userId = req.user?._id,
     } = req.body;
   
-    console.log(page, limit, query, sortBy, sortType, userId);
-  
     // Initialize filters
     const videoFilter = {};
     const userFilter = {};
@@ -79,7 +77,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         })
       );
     } catch (error) {
-      console.error("Error in getAllVideos:", error);
+
       throw new ApiError(500, "Internal Server Error", error);
     }
   });  
@@ -250,7 +248,7 @@ const increaseViews = asyncHandler(async (req, res)=>{
     if(!video){
         throw new ApiError(404,"Video not found");
     }
-    console.log("Views increased", video.views)
+
     res.json(new ApiResponse(200, "Video views updated successfully", video))
 })
 

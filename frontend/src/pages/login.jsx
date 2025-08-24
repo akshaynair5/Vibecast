@@ -85,8 +85,6 @@ const Login = () => {
             { withCredentials: true } // send/receive cookies
           );
 
-          console.log("Google login success:", res.data);
-
           localStorage.setItem("userData", JSON.stringify(res.data.message.user));
           setCurrentUser(res.data.message.user);
 

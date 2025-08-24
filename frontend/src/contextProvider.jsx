@@ -16,7 +16,6 @@ export const AuthContextProvider =({children})=>{
           try {
             const response = await axiosInstance.post(`/users/current-user`, {
             });
-            console.log(response.data);
             const updatedUser = response.data.message;
       
             // Update local storage with the latest user data

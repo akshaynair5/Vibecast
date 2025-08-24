@@ -112,7 +112,6 @@ function Profile() {
           "/stream/",
           data
         );
-        console.log(response.data)
         setCurrentLiveStream(response.data.data);
         setFormDataLiveStream({
           title: "",
@@ -131,7 +130,6 @@ function Profile() {
        const fetchUserProfileData = async ()=>{
             try{
                 const result = await axiosInstance.get(`/users/c/${currentUser.username}`)
-                console.log(result.data)
                 setUserProfileData(result.data.message[0]);
                 setUserAudioData(result.data.message[0].videos);
                 setLiveStreams(result.data.message[0].liveStreams);
@@ -146,10 +144,6 @@ function Profile() {
     const onAudioUpdate = async (updatedInfo, videoId) => {
         try {
           const response = await axiosInstance.patch(`/video/${videoId}`, updatedInfo);
-          console.log("Video updated successfully:", response.data);
-      
-          // Update the UI or state if necessary
-          // Example: Refresh the list of videos or update the specific video in state
         } catch (error) {
           console.error("Error updating video:", error.response?.data || error.message);
           alert("Failed to update video. Please try again.");
@@ -157,14 +151,10 @@ function Profile() {
       };
     
       const onAudioDelete = async (videoId) => {
-        // if (!window.confirm("Are you sure you want to delete this video?")) return;
       
         try {
           const response = await axiosInstance.delete(`/video/${videoId}`);
-          console.log("Video deleted successfully:", response.data);
-      
-          // Update the UI or state if necessary
-          // Example: Remove the deleted video from the list
+
         } catch (error) {
           console.error("Error deleting video:", error.response?.data || error.message);
           alert("Failed to delete video. Please try again.");
@@ -175,10 +165,7 @@ function Profile() {
     const onLiveAudioUpdate = async (updatedInfo, streamId) => {
       try {
         const response = await axiosInstance.patch(`/stream/${streamId}/update`, updatedInfo);
-        console.log("Video updated successfully:", response.data);
-    
-        // Update the UI or state if necessary
-        // Example: Refresh the list of videos or update the specific video in state
+
       } catch (error) {
         console.error("Error updating video:", error.response?.data || error.message);
         alert("Failed to update video. Please try again.");
@@ -186,14 +173,9 @@ function Profile() {
     };
   
     const onLiveAudioDelete = async (streamId) => {
-      // if (!window.confirm("Are you sure you want to delete this video?")) return;
     
       try {
         const response = await axiosInstance.delete(`/stream/${streamId}`);
-        console.log("Video deleted successfully:", response.data);
-    
-        // Update the UI or state if necessary
-        // Example: Remove the deleted video from the list
       } catch (error) {
         console.error("Error deleting video:", error.response?.data || error.message);
         alert("Failed to delete video. Please try again.");
@@ -239,8 +221,7 @@ function Profile() {
           `/video/`,
           formDataToSend
         );
-        console.log("Podcast added:", response.data);
-        setShowAddPodcastModal(false); // Close modal on success
+        setShowAddPodcastModal(false);
       } catch (error) {
         console.error("Error adding podcast:", error);
       }

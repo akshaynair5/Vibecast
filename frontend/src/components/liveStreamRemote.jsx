@@ -139,7 +139,6 @@ const toggleLike = async(e) => {
     
 
     if (callId !== null) {
-        console.log("Setting up connection with callId", callId);
       setupConnection();
     }
   }, [callId]);
