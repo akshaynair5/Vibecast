@@ -1,7 +1,5 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { Authcontext } from "../contextProvider";
-import Like from '../assets/like.png'
-import unLike from '../assets/unlike.png'
 import axiosInstance from "../services/axiosInstance";
 import Likes from "./likeFormatter";
 import { set } from "date-fns";

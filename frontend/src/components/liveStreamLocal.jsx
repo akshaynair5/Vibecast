@@ -7,6 +7,7 @@ import Likes from "./likeFormatter.jsx";
 import Like from '../assets/like.png'
 import unLike from '../assets/unlike.png'
 import { useNavigate } from "react-router-dom";
+import {Heart, HeartOff} from "lucide-react"
 import { X } from "lucide-react";
 
 const LiveStream = () => {
@@ -257,11 +258,12 @@ const LiveStream = () => {
           className="flex items-center bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-700"
           onClick={(e) => { currentLiveStream?.isLiked ? toggleUnLike(e) : toggleLike(e) }}
         >
-          <img
-            src={currentLiveStream?.isLiked ? Like : unLike}
-            alt="Like"
-            className="h-5 mr-2"
-          />
+            {currentLiveStream?.isLiked ? (
+            <HeartOff size={20} />
+            
+          ) : (
+            <Heart size={20} className="text-red-500" />
+          )}
           <Likes likes={currentLiveStream?.likeCount} />
         </button>
       </div>
