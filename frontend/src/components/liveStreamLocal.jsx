@@ -4,8 +4,6 @@ import db from "../services/firebaseConfig.js";
 import { addDoc, collection, doc, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
 import axiosInstance from "../services/axiosInstance.js";
 import Likes from "./likeFormatter.jsx";
-import Like from '../assets/like.png'
-import unLike from '../assets/unlike.png'
 import { useNavigate } from "react-router-dom";
 import {Heart, HeartOff} from "lucide-react"
 import { X } from "lucide-react";
