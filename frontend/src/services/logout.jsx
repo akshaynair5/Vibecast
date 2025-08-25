@@ -1,10 +1,10 @@
 import axios from "axios"; // Make sure axios is imported
 import { useContext } from "react";
+import axiosInstance from "./axiosInstance";
 
 const logout = async (user) => {
   try {
-    // Make a request to the backend to log the user out
-    const response = await axios.post("http://localhost:5000/api/v1/users/logout", {user}, { withCredentials: true });
+    const response = await axiosInstance.post("/users/logout", { user });
 
     // // Remove user data from local storage or session storage
 
