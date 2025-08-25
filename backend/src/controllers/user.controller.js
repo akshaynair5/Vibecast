@@ -4,7 +4,7 @@ import { Video } from "../models/video.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import uploadToCloudinary from "../utils/fileUpload.js";
-import ApiError from "../utils/apiError.js";
+import ApiError from "../utils/ApiError.js";
 import deleteFromCloudinary from "../utils/fileDelete.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";

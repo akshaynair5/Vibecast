@@ -3,7 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import mongoose from 'mongoose';
 import uploadToCloudinary from '../utils/fileUpload.js';
-import ApiError from '../utils/apiError.js';
+import ApiError from '../utils/ApiError.js';
 
 const createStream = asyncHandler(async (req, res) => {
     const { title, description, streamId } = req.body;
