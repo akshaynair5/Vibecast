@@ -48,7 +48,7 @@ app.use("/api/v1/stream", streamRouter)
 
 app.get("/debug-env", (req, res) => {
   res.json({
-    mongoUriExists: !!process.env.MONGO_URI,
+    mongoUriExists: !!process.env.MONGODB_URI,
     port: process.env.PORT,
     nodeEnv: process.env.NODE_ENV
   });
