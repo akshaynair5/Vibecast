@@ -69,6 +69,7 @@ const Login = () => {
 
   const handleContinueWithGoogle = () => {
     /* global google */
+    setLoading(true);
     if (!clientId) {
       console.error("Google client ID not found");
       return;
@@ -97,7 +98,7 @@ const Login = () => {
         }
       },
     });
-
+    setLoading(false);
     // Trigger the Google One Tap popup
     google.accounts.id.prompt();
   };
