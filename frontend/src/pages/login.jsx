@@ -241,14 +241,41 @@ return (
           <div className="grid grid-cols-1 gap-3">
             <button
               type="button"
-              className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2.5 text-white/80 hover:bg-white/10 transition"
-              onClick = {() => {handleContinueWithGoogle()}}
+              className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white/80 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => handleContinueWithGoogle()}
+              disabled={loading}
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                <path d="M21.35 11.1h-9.18v2.92h5.33c-.24 1.5-1.6 4.4-5.33 4.4-3.22 0-5.85-2.66-5.85-5.94 0-3.28 2.63-5.94 5.85-5.94 1.84 0 3.06.77 3.77 1.43l2.57-2.48C16.82 3.5 14.78 2.6 12.17 2.6 6.97 2.6 2.78 6.83 2.78 12s4.19 9.4 9.39 9.4c5.43 0 9.02-3.82 9.02-9.2 0-.62-.07-1.08-.16-1.6z" />
-              </svg>
-              <span className="text-sm">Continue</span>
+              {loading ? (
+                // 🔄 Spinner when loading
+                <svg
+                  className="h-5 w-5 animate-spin text-white/70"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              ) : (
+                // 🟢 Normal Google icon
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                  <path d="M21.35 11.1h-9.18v2.92h5.33c-.24 1.5-1.6 4.4-5.33 4.4-3.22 0-5.85-2.66-5.85-5.94 0-3.28 2.63-5.94 5.85-5.94 1.84 0 3.06.77 3.77 1.43l2.57-2.48C16.82 3.5 14.78 2.6 12.17 2.6 6.97 2.6 2.78 6.83 2.78 12s4.19 9.4 9.39 9.4c5.43 0 9.02-3.82 9.02-9.2 0-.62-.07-1.08-.16-1.6z" />
+                </svg>
+              )}
+              <span className="text-sm">{loading ? "Loading..." : "Continue"}</span>
             </button>
+
             {/* <button
               type="button"
               className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5 text-white/80 hover:bg-white/10 transition"
