@@ -326,16 +326,16 @@ export default function MusicPlayer() {
   }
 
   return (
-    <div
-  className={`fixed text-white transition-all duration-300 shadow-lg rounded-lg z-[1000] backdrop-blur-lg bg-opacity-10 ${
-    isFullscreen
-      ? `w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0`
-      : isExpanded
-      ? `${windowWidth >= 768 ? 'w-1/3 left-[65vw] h-4/5' : 'w-[95%] left-[2.5%] h-4/5'} rounded-lg p-4 bottom-0 top-[12vh] flex flex-col`
-      : `${windowWidth >= 768 ? 'w-1/5 left-[75vw] h-25' : 'w-[95%] left-[2.5%] h-15'} flex items-center p-4 bottom-4`
-  }`}
-  onClick={!isExpanded ? toggleExpand : null}
->
+  <div
+    className={`fixed text-white transition-all duration-300 shadow-lg rounded-lg z-[1000] backdrop-blur-lg bg-opacity-10 ${
+      isFullscreen
+        ? `w-[100vw] h-[100vh] p-8 flex flex-row top-0 left-0`
+        : isExpanded
+        ? `${windowWidth >= 768 ? 'w-1/3 left-[65vw] h-4/5' : 'w-[95%] left-[2.5%] h-4/5'} rounded-lg p-4 bottom-0 top-[12vh] flex flex-col`
+        : `${windowWidth >= 768 ? 'w-1/5 left-[75vw] h-25' : 'w-[95%] left-[2.5%] h-15'} flex items-center p-4 bottom-4`
+    }`}
+    onClick={!isExpanded ? toggleExpand : null}
+  >
     <div 
     className="absolute inset-0 bg-cover bg-center rounded-lg"
     style={{
@@ -377,7 +377,7 @@ export default function MusicPlayer() {
     {/* Audio Info (Left Side in Fullscreen, Centered in Expanded Mode) */}
     <div
       className={`flex flex-col items-center ${
-        isFullscreen ? `${windowWidth >= 768 ? 'w-1/2' : 'w-full'} h-full` : "w-full"
+        isFullscreen ? `${windowWidth >= 768 ? 'w-[50vw]' : 'w-full'} h-full` : "w-full"
       }`}
     >
       <img
@@ -445,7 +445,7 @@ export default function MusicPlayer() {
           <Heart size={16} /> <span>{currentAudio.audio?.likeCount || 0}</span>
         </div>
         <div className="flex items-center gap-1">
-          <MessageSquare size={16} /> <span>{currentAudio.audio?.commentsCount || 0}</span>
+          <MessageSquare size={16} /> <span>{currentAudio.audio?.commentCount || 0}</span>
         </div>
       </div>
 
@@ -474,20 +474,22 @@ export default function MusicPlayer() {
 
     {/* Comments (Right Side in Fullscreen Mode) */}
     {isFullscreen && (
-      <div className={`flex flex-col ${windowWidth >= 768 ? 'w-1/2' : 'w-full'} h-full overflow-y-scroll p-4`}>
+      <div className={`flex flex-col ${windowWidth >= 768 ? 'w-[48vw]' : 'w-full'} h-full overflow-y-scroll p-4`}>
         <textarea
-          className="w-full p-2 border rounded bg-gray-800 text-white"
+          className="w-full p-3 rounded-lg bg-black/20 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/20 backdrop-blur-sm"
           placeholder="Add a comment..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         ></textarea>
+
         <button
-          className="mt-2 bg-slate-700 text-white px-4 py-2 rounded"
+          className="mt-3 px-4 py-2 rounded-lg bg-white/5 text-gray-200 hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-sm border border-white/10"
           onClick={handleAddComment}
           disabled={!newComment.trim() || disableBtn}
         >
           Add Comment
         </button>
+
         {fullScreenLoading && (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-400">Loading comments...</p>

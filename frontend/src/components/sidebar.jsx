@@ -231,10 +231,10 @@ export default function Sidebar() {
           {/* Toggle Button */}
           <button
             className={`fixed ${
-              windowWidth >= 768 ? "top-[10vh] left-[-19vw]" : "top-[4.5rem] left-[-19.7rem]"
-            } z-20 bg-white text-white font-extrabold p-2 shadow-md focus:outline-none ${
-              isOpen ? "translate-x-[15rem]" : "translate-x-0"
-            } transition-transform duration-300 rounded-tr-lg rounded-br-lg min-w-[22rem] flex flex-row-reverse`}
+              windowWidth >= 768 ? "top-[10vh]" : "top-[4.5rem]"
+            } left-0 z-20 bg-white font-extrabold p-2 shadow-md focus:outline-none
+            ${isOpen ? "translate-x-[0rem]" : "translate-x-[-17rem]"}
+            transition-transform duration-300 rounded-tr-lg rounded-br-lg min-w-[22rem] flex flex-row-reverse`}
             onClick={() => setIsOpen(!isOpen)}
           >
             <img
@@ -449,11 +449,11 @@ export default function Sidebar() {
                     )}
 
                     {modalContent === "Audios" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-scroll scrollbar-none"
-                          style={{
-                              maxHeight: "70vh",
-                              overflowY: "auto",
-                            }}
+                      <div
+                        className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-items-center overflow-y-auto scrollbar-none px-6"
+                        style={{
+                          maxHeight: "70vh",
+                        }}
                       >
                         {content.map((audio, index) => {
                           const isOptionsOpen = audioModals.options === index;
