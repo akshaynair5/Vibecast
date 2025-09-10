@@ -10,7 +10,7 @@ const logout = async (user) => {
 
     localStorage.removeItem("userData");  // If you store user info here
 
-    window.location.href = "/Login";  // Redirect the user to the home page
+    window.location.href = "/";  // Redirect the user to the home page
 
   } catch (error) {
     console.error("Logout failed", error.response?.data?.message || error.message);
